@@ -9,8 +9,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.ChapterImpl
 import eu.kanade.tachiyomi.data.database.models.MangaChapterHistory
-import eu.kanade.tachiyomi.data.download.model.Download
-import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.manga.chapter.BaseChapterHolder
 import eu.kanade.tachiyomi.ui.manga.chapter.BaseChapterItem
 import eu.kanade.tachiyomi.ui.recents.RecentsViewType.GroupedAll
@@ -20,8 +18,6 @@ class RecentMangaItem(
     chapter: Chapter = ChapterImpl(),
     header: AbstractHeaderItem<*>?,
 ) : BaseChapterItem<BaseChapterHolder, AbstractHeaderItem<*>>(chapter, header) {
-    var downloadInfo = listOf<DownloadInfo>()
-
     override fun getLayoutRes(): Int =
         if (mch.manga.id == null) {
             R.layout.recents_footer_item
@@ -89,28 +85,5 @@ class RecentMangaItem(
                 holder.useContainers(false)
             }
         }
-    }
-
-    class DownloadInfo {
-        private var _status: Download.State = Download.State.default
-
-        var chapterId: Long? = 0L
-
-        val progress: Int
-            get() {
-                val pages = download?.pages ?: return 0
-                return pages.map(Page::progress).average().toInt()
-            }
-
-        var status: Download.State
-            get() = download?.status ?: _status
-            set(value) {
-                _status = value
-            }
-
-        @Transient var download: Download? = null
-
-        val isDownloaded: Boolean
-            get() = status == Download.State.DOWNLOADED
     }
 }

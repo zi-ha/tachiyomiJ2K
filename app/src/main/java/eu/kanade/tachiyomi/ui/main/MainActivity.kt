@@ -64,8 +64,6 @@ import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.Controller
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.Router
-import com.getkeepsafe.taptargetview.TapTarget
-import com.getkeepsafe.taptargetview.TapTargetView
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.navigationrail.NavigationRailView
 import com.google.android.material.snackbar.Snackbar
@@ -75,20 +73,7 @@ import com.google.common.primitives.Ints.max
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.Migrations
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.download.DownloadJob
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
-import eu.kanade.tachiyomi.data.notification.NotificationReceiver
-import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.data.preference.asImmediateFlowIn
-import eu.kanade.tachiyomi.data.updater.AppUpdateChecker
-import eu.kanade.tachiyomi.data.updater.AppUpdateNotifier
-import eu.kanade.tachiyomi.data.updater.AppUpdateResult
-import eu.kanade.tachiyomi.data.updater.RELEASE_URL
 import eu.kanade.tachiyomi.databinding.MainActivityBinding
-import eu.kanade.tachiyomi.extension.ExtensionManager
-import eu.kanade.tachiyomi.extension.api.ExtensionApi
-import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.MaterialMenuSheet
 import eu.kanade.tachiyomi.ui.base.SmallToolbarInterface
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
@@ -105,8 +90,6 @@ import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 import eu.kanade.tachiyomi.ui.setting.SettingsMainController
 import eu.kanade.tachiyomi.ui.source.BrowseController
-import eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController
-import eu.kanade.tachiyomi.ui.source.browse.repos.RepoController
 import eu.kanade.tachiyomi.util.manga.MangaCoverMetadata
 import eu.kanade.tachiyomi.util.manga.MangaShortcutManager
 import eu.kanade.tachiyomi.util.system.contextCompatDrawable
@@ -120,12 +103,10 @@ import eu.kanade.tachiyomi.util.system.isBottomTappable
 import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.system.isTablet
-import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.launchUI
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import eu.kanade.tachiyomi.util.system.prepareSideNavContext
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
-import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.BackHandlerControllerInterface
 import eu.kanade.tachiyomi.util.view.backgroundColor
 import eu.kanade.tachiyomi.util.view.blurBehindWindow
@@ -137,18 +118,11 @@ import eu.kanade.tachiyomi.util.view.mainRecyclerView
 import eu.kanade.tachiyomi.util.view.snack
 import eu.kanade.tachiyomi.util.view.withFadeInTransaction
 import eu.kanade.tachiyomi.util.view.withFadeTransaction
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import timber.log.Timber
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
-import java.util.Date
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToLong
@@ -166,14 +140,10 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     private var canDismissSnackBar = false
 
     private var animationSet: AnimatorSet? = null
-    private val downloadManager: DownloadManager by injectLazy()
     private val mangaShortcutManager: MangaShortcutManager by injectLazy()
-    private val extensionManager: ExtensionManager by injectLazy()
     private val hideBottomNav
         get() = router.backstackSize > 1 && router.backstack[1].controller !is DialogController
 
-    private val updateChecker by lazy { AppUpdateChecker() }
-    private val isUpdaterEnabled = BuildConfig.INCLUDE_UPDATER
     private var tabAnimation: ValueAnimator? = null
     private var searchBarAnimation: ValueAnimator? = null
     private var overflowDialog: Dialog? = null
@@ -423,7 +393,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         val container: ViewGroup = binding.controllerContainer
 
         val content: ViewGroup = binding.mainContent
-        DownloadJob.downloadFlow.onEach(::downloadStatusChanged).launchIn(lifecycleScope)
         lifecycleScope
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setSupportActionBar(binding.toolbar)
@@ -799,7 +768,12 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     ) {
         super.onTitleChanged(title, color)
         binding.searchToolbar.title = searchTitle
-        val onExpandedController = if (this::router.isInitialized) router.backstack.lastOrNull()?.controller !is SmallToolbarInterface else false
+        val onExpandedController =
+            if (this::router.isInitialized) {
+                router.backstack.lastOrNull()?.controller !is SmallToolbarInterface
+            } else {
+                false
+            }
         binding.appBar.setTitle(title, onExpandedController)
     }
 
@@ -982,48 +956,10 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
 
     override fun onResume() {
         super.onResume()
-        checkForAppUpdates()
-        getExtensionUpdates(false)
-        setExtensionsBadge()
-        DownloadJob.callListeners(downloadManager = downloadManager)
-        showDLQueueTutorial()
         reEnableBackPressedCallBack()
     }
 
     private fun showDLQueueTutorial() {
-        if (router.backstackSize == 1 &&
-            this !is SearchActivity &&
-            downloadManager.hasQueue() &&
-            !preferences.shownDownloadQueueTutorial().get()
-        ) {
-            if (!isBindingInitialized) return
-            val recentsItem = nav.getItemView(R.id.nav_recents) ?: return
-            preferences.shownDownloadQueueTutorial().set(true)
-            TapTargetView.showFor(
-                this,
-                TapTarget
-                    .forView(
-                        recentsItem,
-                        getString(R.string.manage_whats_downloading),
-                        getString(R.string.visit_recents_for_download_queue),
-                    ).outerCircleColorInt(getResourceColor(R.attr.colorSecondary))
-                    .outerCircleAlpha(0.95f)
-                    .titleTextSize(
-                        20,
-                    ).titleTextColorInt(getResourceColor(R.attr.colorOnSecondary))
-                    .descriptionTextSize(16)
-                    .descriptionTextColorInt(getResourceColor(R.attr.colorOnSecondary))
-                    .icon(contextCompatDrawable(R.drawable.ic_recent_read_32dp))
-                    .targetCircleColor(android.R.color.white)
-                    .targetRadius(45),
-                object : TapTargetView.Listener() {
-                    override fun onTargetClick(view: TapTargetView) {
-                        super.onTargetClick(view)
-                        nav.selectedItemId = R.id.nav_recents
-                    }
-                },
-            )
-        }
     }
 
     override fun onPause() {
@@ -1036,50 +972,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     private fun saveExtras() {
         mangaShortcutManager.updateShortcuts(this)
         MangaCoverMetadata.savePrefs()
-    }
-
-    private fun checkForAppUpdates() {
-        if (isUpdaterEnabled) {
-            lifecycleScope.launchIO {
-                try {
-                    val result = updateChecker.checkForUpdate(this@MainActivity)
-                    if (result is AppUpdateResult.NewUpdate) {
-                        val body = result.release.info
-                        val url = result.release.downloadLink
-                        val isBeta = result.release.preRelease == true
-
-                        // Create confirmation window
-                        withContext(Dispatchers.Main) {
-                            showNotificationPermissionPrompt()
-                            AppUpdateNotifier.releasePageUrl = result.release.releaseLink
-                            AboutController.NewUpdateDialogController(body, url, isBeta).showDialog(router)
-                        }
-                    }
-                } catch (error: Exception) {
-                    Timber.e(error)
-                }
-            }
-        }
-    }
-
-    fun getExtensionUpdates(force: Boolean) {
-        if ((force && extensionManager.availableExtensionsFlow.value.isEmpty()) ||
-            Date().time >= preferences.lastExtCheck().get() + TimeUnit.HOURS.toMillis(6)
-        ) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    extensionManager.findAvailableExtensions()
-                    val pendingUpdates =
-                        ExtensionApi().checkForUpdates(
-                            this@MainActivity,
-                            extensionManager.availableExtensionsFlow.value.takeIf { it.isNotEmpty() },
-                        )
-                    preferences.extensionUpdatesCount().set(pendingUpdates.size)
-                    preferences.lastExtCheck().set(Date().time)
-                } catch (_: Exception) {
-                }
-            }
-        }
     }
 
     fun showNotificationPermissionPrompt(showAnyway: Boolean = false) {
@@ -1628,11 +1520,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             this,
             listOf(
                 MaterialMenuSheet.MenuSheetItem(
-                    0,
-                    textRes = R.string.whats_new_this_release,
-                    drawable = R.drawable.ic_new_releases_outline_24dp,
-                ),
-                MaterialMenuSheet.MenuSheetItem(
                     1,
                     textRes = R.string.close,
                     drawable = R.drawable.ic_close_24dp,
@@ -1642,18 +1529,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             showDivider = true,
             selectedId = 0,
             onMenuItemClicked = { _, item ->
-                if (item == 0) {
-                    try {
-                        val intent =
-                            Intent(
-                                Intent.ACTION_VIEW,
-                                RELEASE_URL.toUri(),
-                            )
-                        startActivity(intent)
-                    } catch (e: Throwable) {
-                        toast(e.message)
-                    }
-                }
                 true
             },
         )

@@ -343,7 +343,7 @@ class FilterBottomSheet
                 preferences.filterTracked().get() > 0 ||
                 preferences.filterMangaType().get() > 0 ||
                 preferences.filterBookmarked().get() > 0 ||
-                FILTER_TRACKER.isNotEmpty()
+                filterTracker.isNotEmpty()
 
         private fun createTags() {
             downloaded = inflate(R.layout.filter_tag_group) as FilterTagGroup
@@ -435,7 +435,7 @@ class FilterBottomSheet
                             if (tracked?.isActivated == true) {
                                 binding.filterLayout.addView(trackers)
                                 filterItems.add(trackers!!)
-                                trackers?.setState(FILTER_TRACKER)
+                                trackers?.setState(filterTracker)
                                 reSortViews()
                             }
                         }
@@ -507,7 +507,7 @@ class FilterBottomSheet
             } else if (tracked?.isActivated == false && trackers?.parent != null) {
                 binding.filterLayout.removeView(trackers)
                 trackers?.reset()
-                FILTER_TRACKER = ""
+                filterTracker = ""
                 filterItems.remove(trackers!!)
             }
             if (hasFilters && clearButton.parent == null) {
@@ -523,7 +523,7 @@ class FilterBottomSheet
         ) {
             when (view) {
                 trackers -> {
-                    FILTER_TRACKER = view.nameOf(index) ?: ""
+                    filterTracker = view.nameOf(index) ?: ""
                     null
                 }
                 unreadProgress -> {
@@ -576,7 +576,7 @@ class FilterBottomSheet
                 if (tracked?.isActivated == false && trackers?.parent != null) {
                     binding.filterLayout.removeView(trackers)
                     trackers?.reset()
-                    FILTER_TRACKER = ""
+                    filterTracker = ""
                     filterItems.remove(trackers!!)
                 }
                 reSortViews()
@@ -595,7 +595,7 @@ class FilterBottomSheet
             preferences.filterBookmarked().set(0)
             preferences.filterTracked().set(0)
             preferences.filterMangaType().set(0)
-            FILTER_TRACKER = ""
+            filterTracker = ""
 
             val transition = androidx.transition.AutoTransition()
             transition.duration = 150
@@ -638,7 +638,7 @@ class FilterBottomSheet
             const val STATE_INCLUDE = 1
             const val STATE_EXCLUDE = 2
 
-            var FILTER_TRACKER = ""
+            var filterTracker = ""
         }
 
         enum class Filters(

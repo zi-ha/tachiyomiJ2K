@@ -6,7 +6,6 @@ import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import eu.kanade.tachiyomi.databinding.ReaderErrorBinding
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewer
-import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 
 class ReaderErrorView
     @JvmOverloads
@@ -30,14 +29,7 @@ class ReaderErrorView
         }
 
         fun configureView(url: String?): ReaderErrorBinding {
-            if (url?.startsWith("http", true) == true) {
-                binding.actionOpenInWebView.isVisible = true
-                binding.actionOpenInWebView.setOnClickListener {
-                    context.startActivity(WebViewActivity.newIntent(context, url))
-                }
-            } else {
-                binding.actionOpenInWebView.isVisible = false
-            }
+            binding.actionOpenInWebView.isVisible = false
             binding.root.isVisible = true
             return binding
         }

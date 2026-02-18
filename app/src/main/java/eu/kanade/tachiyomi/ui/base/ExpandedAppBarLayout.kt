@@ -36,8 +36,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class
-ExpandedAppBarLayout@JvmOverloads
+class ExpandedAppBarLayout
+    @JvmOverloads
     constructor(
         context: Context,
         attrs: AttributeSet? = null,

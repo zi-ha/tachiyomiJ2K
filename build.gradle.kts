@@ -5,6 +5,25 @@ plugins {
 }
 allprojects {
     repositories {
+        maven {
+            setUrl("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/gradle")
+            content {
+                includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..*)?")
+            }
+        }
+        maven {
+            setUrl("https://maven.aliyun.com/repository/google")
+        }
+        maven {
+            setUrl("https://maven.aliyun.com/repository/central")
+        }
+        maven {
+            setUrl("https://maven.aliyun.com/repository/jitpack")
+            content {
+                // Avoid Kotlin plugin artifacts going to Aliyun jitpack mirror
+                excludeGroupByRegex("org\\.jetbrains\\.kotlin(\\..*)?")
+            }
+        }
         google()
         mavenCentral()
         maven { setUrl("https://jitpack.io") }
@@ -24,19 +43,33 @@ subprojects {
 }
 
 buildscript {
+    repositories {
+        maven {
+            setUrl("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/gradle")
+            content {
+                includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..*)?")
+            }
+        }
+        maven {
+            setUrl("https://maven.aliyun.com/repository/gradle-plugin")
+            content {
+                excludeGroupByRegex("org\\.jetbrains\\.kotlin(\\..*)?")
+            }
+        }
+        maven { setUrl("https://maven.aliyun.com/repository/google") }
+        maven { setUrl("https://maven.aliyun.com/repository/central") }
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
     dependencies {
         //noinspection AndroidGradlePluginVersion
-        classpath("com.android.tools.build:gradle:8.13.2")
+        classpath("com.android.tools.build:gradle:8.7.3")
         classpath("com.google.gms:google-services:4.4.4")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${AndroidVersions.kotlin}")
         classpath("com.google.android.gms:oss-licenses-plugin:0.10.10")
         classpath("org.jetbrains.kotlin:kotlin-serialization:${AndroidVersions.kotlin}")
         classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.6")
-    }
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
     }
 }
 

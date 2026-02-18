@@ -10,19 +10,15 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
-import android.text.style.DynamicDrawableSpan
-import android.text.style.ImageSpan
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
@@ -42,10 +38,6 @@ import androidx.activity.viewModels
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.drawable.toDrawable
-import androidx.core.text.buildSpannedString
-import androidx.core.text.inSpans
 import androidx.core.transition.addListener
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
@@ -81,7 +73,6 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.preference.asImmediateFlowIn
 import eu.kanade.tachiyomi.data.preference.toggle
-import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.databinding.ReaderActivityBinding
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.base.MaterialMenuSheet
@@ -106,12 +97,10 @@ import eu.kanade.tachiyomi.ui.reader.viewer.pager.R2LPagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.VerticalPagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonViewer
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
-import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil.Companion.preferredChapterName
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.ThemeUtil
 import eu.kanade.tachiyomi.util.system.contextCompatColor
-import eu.kanade.tachiyomi.util.system.contextCompatDrawable
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getBottomGestureInsets
 import eu.kanade.tachiyomi.util.system.getResourceColor
@@ -450,9 +439,6 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                     }
                     is ReaderViewModel.Event.SetCoverResult -> {
                         onSetAsCoverResult(event.result)
-                    }
-                    is ReaderViewModel.Event.ShareTrackingError -> {
-                        showTrackingError(event.errors)
                     }
                 }
             }.launchIn(lifecycleScope)
@@ -1898,55 +1884,6 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         )
     }
 
-    private fun showTrackingError(errors: List<Pair<TrackService, String?>>) {
-        if (errors.isEmpty()) return
-        snackbar?.dismiss()
-        val errorText =
-            if (errors.size > 1) {
-                getString(R.string.failed_to_update_, errors.joinToString(", ") { getString(it.first.nameRes()) })
-            } else {
-                val (service, errorMessage) = errors.first()
-                buildSpannedString {
-                    if (errorMessage != null) {
-                        val icon =
-                            contextCompatDrawable(service.getLogo())
-                                ?.mutate()
-                                ?.run {
-                                    (this as? BitmapDrawable)?.run {
-                                        val newBitmap =
-                                            createBitmap(
-                                                intrinsicWidth,
-                                                intrinsicHeight,
-                                                bitmap.config!!,
-                                            )
-                                        val canvas = Canvas(newBitmap)
-                                        val bgColor = ColorUtils.setAlphaComponent(service.getLogoColor(), 255)
-                                        canvas.drawColor(bgColor)
-                                        canvas.drawBitmap(bitmap, 0f, 0f, null)
-                                        newBitmap.toDrawable(resources)
-                                    } ?: this
-                                }?.apply {
-                                    val size =
-                                        resources.getDimension(com.google.android.material.R.dimen.design_snackbar_text_size)
-                                    val dRatio = intrinsicWidth / intrinsicHeight.toFloat()
-                                    setBounds(0, 0, (size * dRatio).roundToInt(), size.roundToInt())
-                                } ?: return
-                        val alignment =
-                            if (Build.VERSION.SDK_INT >=
-                                Build.VERSION_CODES.Q
-                            ) {
-                                DynamicDrawableSpan.ALIGN_CENTER
-                            } else {
-                                DynamicDrawableSpan.ALIGN_BASELINE
-                            }
-                        inSpans(ImageSpan(icon, alignment)) { append("image") }
-                        append(" - $errorMessage")
-                    }
-                }
-            }
-        snackbar = binding.readerLayout.snack(errorText, 5000)
-    }
-
     private fun onVisibilityChange(visible: Boolean) {
         if (visible && !menuTemporarilyVisible && !menuVisible && !binding.appBar.isVisible) {
             menuTemporarilyVisible = true
@@ -2040,17 +1977,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     }
 
     private fun openMangaInBrowser() {
-        val source = viewModel.getSource() ?: return
-        val chapterUrl = viewModel.getChapterUrl() ?: return
-
-        val intent =
-            WebViewActivity.newIntent(
-                applicationContext,
-                chapterUrl,
-                source.id,
-                viewModel.manga!!.title,
-            )
-        startActivity(intent)
+        // Removed
     }
 
     /**

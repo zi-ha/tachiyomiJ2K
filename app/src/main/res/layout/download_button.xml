@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<eu.kanade.tachiyomi.ui.download.DownloadButton xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/download_button"
@@ -44,4 +44,4 @@
         android:background="?selectableItemBackgroundBorderless"
         android:padding="5dp"
         android:src="@drawable/ic_arrow_downward_24dp" />
-</eu.kanade.tachiyomi.ui.download.DownloadButton>
+</FrameLayout>

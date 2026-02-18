@@ -1,15 +1,11 @@
 package eu.kanade.tachiyomi.source
 
 import android.graphics.drawable.Drawable
-import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.system.awaitSingle
 import rx.Observable
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 /**
  * A basic interface for creating a source. It could be an online source, a local source, etc.
@@ -95,8 +91,8 @@ interface Source {
     fun fetchPageList(chapter: SChapter): Observable<List<Page>> = throw IllegalStateException("Not used")
 }
 
-fun Source.icon(): Drawable? = Injekt.get<ExtensionManager>().getAppIconForSource(this)
+fun Source.icon(): Drawable? = null // Injekt.get<ExtensionManager>().getAppIconForSource(this)
 
-fun Source.pkgName() = Injekt.get<ExtensionManager>().getPackageName(id)
+fun Source.pkgName() = "" // Injekt.get<ExtensionManager>().getPackageName(id)
 
 fun Source.preferenceKey(): String = "source_$id"

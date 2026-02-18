@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.data.database.models.LibraryManga
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
 import eu.kanade.tachiyomi.data.database.models.Track
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.DelayedLibrarySuggestionsJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.minusAssign
@@ -19,7 +18,6 @@ import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.presenter.BaseCoroutinePresenter
 import eu.kanade.tachiyomi.ui.library.LibraryGroup.BY_AUTHOR
 import eu.kanade.tachiyomi.ui.library.LibraryGroup.BY_DEFAULT
@@ -291,7 +289,7 @@ class LibraryPresenter(
 
         val showEmptyCategoriesWhileFiltering = preferences.showEmptyCategoriesWhileFiltering().get()
 
-        val filterTrackers = FilterBottomSheet.FILTER_TRACKER
+        val filterTrackers = FilterBottomSheet.filterTracker
 
         val filtersOff =
             view?.isSubClass != true &&
@@ -430,15 +428,7 @@ class LibraryPresenter(
         }
         val trackingScore = customFilters.filterTrackingScore
         if (trackingScore > 0 || trackingScore == -1) {
-            val tracks = db.getTracks(item.manga).executeAsBlocking()
-
-            val hasTrack =
-                loggedServices.any { service ->
-                    tracks.any { it.sync_id == service.id }
-                }
-            if (trackingScore > 0 && !hasTrack) return false
-
-            if (getMeanScoreToInt(tracks) != trackingScore) return false
+            return false
         }
         if (!matchesFilterTracking(item, customFilters.filterTracked, filterTrackers)) return false
         val startingYear = customFilters.filterStartYear
@@ -486,10 +476,7 @@ class LibraryPresenter(
     /**
      * Convert the score to a 10 point score
      */
-    private fun Track.get10PointScore(): Float? {
-        val service = trackManager.getService(this.sync_id)
-        return service?.get10PointScore(this.score)
-    }
+    private fun Track.get10PointScore(): Float? = null
 
     private fun matchesFilterTracking(
         item: LibraryItem,
@@ -498,37 +485,10 @@ class LibraryPresenter(
     ): Boolean {
         // Filter for tracked (or per tracked service)
         if (filterTracked != STATE_IGNORE) {
-            val tracks = db.getTracks(item.manga).executeAsBlocking()
-
-            val hasTrack =
-                loggedServices.any { service ->
-                    tracks.any { it.sync_id == service.id }
-                }
-            val service =
-                if (filterTrackers.isNotEmpty()) {
-                    loggedServices.find {
-                        context.getString(it.nameRes()) == filterTrackers
-                    }
-                } else {
-                    null
-                }
             if (filterTracked == STATE_INCLUDE) {
-                if (!hasTrack) return false
-                if (filterTrackers.isNotEmpty()) {
-                    if (service != null) {
-                        val hasServiceTrack = tracks.any { it.sync_id == service.id }
-                        if (!hasServiceTrack) return false
-                        if (filterTracked == STATE_EXCLUDE) return false
-                    }
-                }
+                return false
             } else if (filterTracked == STATE_EXCLUDE) {
-                if (hasTrack && filterTrackers.isEmpty()) return false
-                if (filterTrackers.isNotEmpty()) {
-                    if (service != null) {
-                        val hasServiceTrack = tracks.any { it.sync_id == service.id }
-                        if (hasServiceTrack) return false
-                    }
-                }
+                return true
             }
         }
         return true
@@ -549,7 +509,7 @@ class LibraryPresenter(
         }
 
         for (item in itemList) {
-            item.downloadCount = downloadManager.getDownloadCount(item.manga)
+            item.downloadCount = 0
         }
     }
 
@@ -903,7 +863,7 @@ class LibraryPresenter(
                             listOf(
                                 LibraryItem(
                                     manga,
-                                    makeOrGetHeader("${source.name}$sourceSplitter${source.id}"),
+                                    makeOrGetHeader("${source.name}$SOURCE_SPLITTER${source.id}"),
                                     viewContext,
                                 ),
                             )
@@ -933,7 +893,7 @@ class LibraryPresenter(
                                 LibraryItem(
                                     manga,
                                     makeOrGetHeader(
-                                        lang?.plus(langSplitter)?.plus(
+                                        lang?.plus(LANG_SPLITTER)?.plus(
                                             run {
                                                 val locale = Locale.forLanguageTag(lang)
                                                 locale
@@ -967,12 +927,12 @@ class LibraryPresenter(
                             preferences.librarySortingAscending().get(),
                         ).apply {
                             id = item.value.catId
-                            if (name.contains(sourceSplitter)) {
-                                val split = name.split(sourceSplitter)
+                            if (name.contains(SOURCE_SPLITTER)) {
+                                val split = name.split(SOURCE_SPLITTER)
                                 name = split.first()
                                 sourceId = split.last().toLongOrNull()
-                            } else if (name.contains(langSplitter)) {
-                                val split = name.split(langSplitter)
+                            } else if (name.contains(LANG_SPLITTER)) {
+                                val split = name.split(LANG_SPLITTER)
                                 name = split.last()
                                 langId = split.first()
                             }
@@ -995,8 +955,8 @@ class LibraryPresenter(
             val headerItem =
                 tagItems[
                     when {
-                        category.sourceId != null -> "${category.name}$sourceSplitter${category.sourceId}"
-                        category.langId != null -> "${category.langId}$langSplitter${category.name}"
+                        category.sourceId != null -> "${category.name}$SOURCE_SPLITTER${category.sourceId}"
+                        category.langId != null -> "${category.langId}$LANG_SPLITTER${category.name}"
                         else -> category.name
                     },
                 ]
@@ -1096,12 +1056,7 @@ class LibraryPresenter(
         }
     }
 
-    fun getMangaUrls(mangas: List<Manga>): List<String> {
-        return mangas.mapNotNull { manga ->
-            val source = sourceManager.get(manga.source) as? HttpSource ?: return@mapNotNull null
-            source.getMangaUrl(manga)
-        }
-    }
+    fun getMangaUrls(mangas: List<Manga>): List<String> = emptyList()
 
     /**
      * Remove the selected manga from the library.
@@ -1298,7 +1253,7 @@ class LibraryPresenter(
     }
 
     private fun getDynamicCategoryName(category: Category): String =
-        groupType.toString() + dynamicCategorySplitter + (
+        groupType.toString() + DYNAMIC_CATEGORY_SPLITTER + (
             category.sourceId?.toString() ?: category.langId ?: category.name
         )
 
@@ -1340,17 +1295,6 @@ class LibraryPresenter(
 
     /** download All unread */
     fun downloadUnread(mangaList: List<Manga>) {
-        presenterScope.launch {
-            withContext(Dispatchers.IO) {
-                mangaList.forEach { list ->
-                    val chapters = db.getChapters(list).executeAsBlocking().filter { !it.read }
-                    downloadManager.downloadChapters(list, chapters)
-                }
-            }
-            if (preferences.downloadBadge().get()) {
-                requestDownloadBadgesUpdate()
-            }
-        }
     }
 
     fun markReadStatus(
@@ -1402,30 +1346,27 @@ class LibraryPresenter(
         manga: Manga,
         chapters: List<Chapter>,
     ) {
-        sourceManager.get(manga.source)?.let { source ->
-            downloadManager.deleteChapters(chapters, manga, source)
-        }
     }
 
     companion object {
         private var lastLibraryItems: List<LibraryItem>? = null
         private var lastCategories: List<Category>? = null
         private var lastAllLibraryItems: List<LibraryItem>? = null
-        private const val sourceSplitter = "◘•◘"
-        private const val langSplitter = "⨼⨦⨠"
-        private const val dynamicCategorySplitter = "▄╪\t▄╪\t▄"
+        private const val SOURCE_SPLITTER = "◘•◘"
+        private const val LANG_SPLITTER = "⨼⨦⨠"
+        private const val DYNAMIC_CATEGORY_SPLITTER = "▄╪\t▄╪\t▄"
 
         private val randomTags = arrayOf(0, 1, 2)
-        private const val randomSource = 4
-        private const val randomTitle = 3
+        private const val RANDOM_SOURCE = 4
+        private const val RANDOM_TITLE = 3
 
         @Suppress("unused")
-        private const val randomTag = 0
+        private const val RANDOM_TAG = 0
         private val randomGroupOfTags = arrayOf(1, 2)
-        private const val randomGroupOfTagsNormal = 1
+        private const val RANDOM_GROUP_OF_TAGS_NORMAL = 1
 
         @Suppress("unused")
-        private const val randomGroupOfTagsNegate = 2
+        private const val RANDOM_GROUP_OF_TAGS_NEGATE = 2
 
         fun onLowMemory() {
             lastLibraryItems = null
@@ -1456,7 +1397,7 @@ class LibraryPresenter(
             val libraryManga by lazy { db.getLibraryMangas().executeAsBlocking() }
             preferences.librarySearchSuggestion().set(
                 when (val value = random.nextInt(0, 5)) {
-                    randomSource -> {
+                    RANDOM_SOURCE -> {
                         val distinctSources = libraryManga.distinctBy { it.source }
                         val randomSource =
                             sourceManager
@@ -1465,7 +1406,7 @@ class LibraryPresenter(
                                 )?.name
                         randomSource?.chopByWords(30)
                     }
-                    randomTitle -> {
+                    RANDOM_TITLE -> {
                         libraryManga.randomOrNull(random)?.title?.chopByWords(30)
                     }
                     in randomTags -> {
@@ -1486,7 +1427,7 @@ class LibraryPresenter(
                             while (offset2 == offset) {
                                 offset2 = random.nextInt(0, distinctTags.size / 2 - 2)
                             }
-                            if (value == randomGroupOfTagsNormal) {
+                            if (value == RANDOM_GROUP_OF_TAGS_NORMAL) {
                                 "${shortestTagsSort[offset]}, " + shortestTagsSort[offset2]
                             } else {
                                 "${shortestTagsSort[offset]}, -" + shortestTagsSort[offset2]

@@ -11,7 +11,6 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.WebtoonLayoutManager
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
@@ -21,7 +20,6 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import timber.log.Timber
-import uy.kohesive.injekt.injectLazy
 import kotlin.math.max
 import kotlin.math.min
 
@@ -32,8 +30,6 @@ class WebtoonViewer(
     val activity: ReaderActivity,
     val hasMargins: Boolean = false,
 ) : BaseViewer {
-    val downloadManager: DownloadManager by injectLazy()
-
     private val scope = MainScope()
 
     /**

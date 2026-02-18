@@ -17,11 +17,8 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.source.icon
-import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.main.SearchActivity
 import eu.kanade.tachiyomi.ui.recents.RecentsPresenter
-import eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController
 import eu.kanade.tachiyomi.util.system.launchIO
 import timber.log.Timber
 import uy.kohesive.injekt.Injekt
@@ -51,17 +48,7 @@ class MangaShortcutManager(
                     } else {
                         emptyList()
                     }
-                val recentSources =
-                    if (preferences.showSourcesInShortcuts()) {
-                        preferences.lastUsedSources().get().mapNotNull {
-                            val splitS = it.split(":")
-                            splitS.first().toLongOrNull()?.let { id ->
-                                sourceManager.getOrStub(id) to splitS[1].toLong()
-                            }
-                        }
-                    } else {
-                        emptyList()
-                    }
+                val recentSources = emptyList<Pair<Source, Long>>()
                 val recents =
                     (recentManga.take(shortcutManager.maxShortcutCountPerActivity) + recentSources)
                         .sortedByDescending { it.second }
@@ -105,35 +92,6 @@ class MangaShortcutManager(
                                         SearchActivity
                                             .openMangaIntent(context, item.id, true)
                                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                                    ).build()
-                            }
-                            is Source -> {
-                                val bitmap = (item.icon() as? BitmapDrawable)?.bitmap
-
-                                ShortcutInfo
-                                    .Builder(context, "Source-${item.id}")
-                                    .setShortLabel(item.name)
-                                    .setLongLabel(item.name)
-                                    .setIcon(
-                                        if (bitmap != null) {
-                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                                Icon.createWithAdaptiveBitmap(bitmap.toSquare())
-                                            } else {
-                                                Icon.createWithBitmap(bitmap)
-                                            }
-                                        } else {
-                                            Icon.createWithResource(
-                                                context,
-                                                R.drawable.sc_extensions_48dp,
-                                            )
-                                        },
-                                    ).setIntent(
-                                        Intent(
-                                            context,
-                                            SearchActivity::class.java,
-                                        ).setAction(MainActivity.SHORTCUT_SOURCE)
-                                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                                            .putExtra(BrowseSourceController.SOURCE_ID_KEY, item.id),
                                     ).build()
                             }
                             else -> {

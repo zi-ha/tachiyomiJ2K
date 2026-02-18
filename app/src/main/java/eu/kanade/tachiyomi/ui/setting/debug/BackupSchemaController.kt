@@ -18,14 +18,14 @@ import kotlinx.serialization.protobuf.schema.ProtoBufSchemaGenerator
 
 class BackupSchemaController : BaseController<SubDebugControllerBinding>() {
     companion object {
-        const val title = "Backup file schema"
+        const val TITLE = "Backup file schema"
     }
 
     private val itemAdapter = ItemAdapter<DebugInfoItem>()
     private val fastAdapter = FastAdapter.with(itemAdapter)
     private val schema = ProtoBufSchemaGenerator.generateSchemaText(Backup.serializer().descriptor)
 
-    override fun getTitle() = title
+    override fun getTitle() = TITLE
 
     override fun createBinding(inflater: LayoutInflater) = SubDebugControllerBinding.inflate(inflater)
 

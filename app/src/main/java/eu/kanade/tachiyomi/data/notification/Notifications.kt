@@ -18,21 +18,9 @@ object Notifications {
      * Common notification channel and ids used anywhere.
      */
     const val CHANNEL_COMMON = "common_channel"
-    const val ID_UPDATER = 1
     const val ID_DOWNLOAD_IMAGE = 2
     const val ID_INSTALL = 3
-    const val CHANNEL_INSTALLING = "installing_channel"
-    const val CHANNEL_UPDATED = "updated_channel"
     const val ID_INSTALLED = -6
-    const val GROUP_APP_UPDATES = "eu.kanade.tachiyomi.APP_UPDATES"
-
-    /**
-     * Notification channel and ids used by the downloader.
-     */
-    const val CHANNEL_DOWNLOADER = "downloader_channel"
-    const val ID_DOWNLOAD_CHAPTER = -201
-    const val ID_DOWNLOAD_CHAPTER_ERROR = -202
-    const val ID_DOWNLOAD_SIZE_WARNING = -203
 
     /**
      * Notification channel and ids used by the library updater.
@@ -52,18 +40,6 @@ object Notifications {
     const val ID_LIBRARY_SIZE_WARNING = -103
     const val CHANNEL_LIBRARY_SKIPPED = "library_skipped_channel"
     const val ID_LIBRARY_SKIPPED = -104
-
-    /**
-     * Notification channel and ids used by the library updater.
-     */
-    private const val GROUP_EXTENSION_UPDATES = "group_extension_updates"
-    const val CHANNEL_UPDATES_TO_EXTS = "updates_ext_channel"
-    const val ID_UPDATES_TO_EXTS = -401
-
-    const val CHANNEL_EXT_PROGRESS = "ext_update_progress_channel"
-    const val ID_EXTENSION_PROGRESS = -402
-    const val CHANNEL_EXT_UPDATED = "ext_updated_channel"
-    const val ID_UPDATED_EXTS = -403
 
     private const val GROUP_BACKUP_RESTORE = "group_backup_restore"
     const val CHANNEL_BACKUP_RESTORE_PROGRESS = "backup_restore_progress_channel"
@@ -107,11 +83,6 @@ object Notifications {
                 GROUP_BACKUP_RESTORE,
                 context.getString(R.string.backup_and_restore),
             ),
-            NotificationChannelGroup(
-                GROUP_EXTENSION_UPDATES,
-                context.getString(R.string.extension_updates),
-            ),
-            NotificationChannelGroup(GROUP_APP_UPDATES, context.getString(R.string.app_updates)),
             NotificationChannelGroup(GROUP_LIBRARY, context.getString(R.string.library)),
         ).forEach(context.notificationManager::createNotificationChannelGroup)
 
@@ -195,40 +166,6 @@ object Notifications {
                     NotificationManager.IMPORTANCE_LOW,
                 ).apply {
                     lockscreenVisibility = Notification.VISIBILITY_SECRET
-                },
-                NotificationChannel(
-                    CHANNEL_EXT_PROGRESS,
-                    context.getString(R.string.updating_extensions),
-                    NotificationManager.IMPORTANCE_LOW,
-                ).apply {
-                    group = GROUP_EXTENSION_UPDATES
-                    setShowBadge(false)
-                    setSound(null, null)
-                },
-                NotificationChannel(
-                    CHANNEL_EXT_UPDATED,
-                    context.getString(R.string.extensions_updated),
-                    NotificationManager.IMPORTANCE_DEFAULT,
-                ).apply {
-                    group = GROUP_EXTENSION_UPDATES
-                },
-                NotificationChannel(
-                    CHANNEL_INSTALLING,
-                    context.getString(R.string.installing),
-                    NotificationManager.IMPORTANCE_HIGH,
-                ).apply {
-                    setShowBadge(false)
-                    setSound(null, null)
-                    enableVibration(false)
-                    group = GROUP_APP_UPDATES
-                },
-                NotificationChannel(
-                    CHANNEL_UPDATED,
-                    context.getString(R.string.update_completed),
-                    NotificationManager.IMPORTANCE_HIGH,
-                ).apply {
-                    setShowBadge(false)
-                    group = GROUP_APP_UPDATES
                 },
             )
         context.notificationManager.createNotificationChannels(channels)

@@ -1,3 +1,5 @@
+@file:Suppress("PropertyName")
+
 package eu.kanade.tachiyomi.data.preference
 
 /**
@@ -219,21 +221,21 @@ object PreferenceKeys {
 
     const val autoUpdateExtensions = "auto_update_extensions"
 
-    const val defaultChapterFilterByRead = "default_chapter_filter_by_read"
+    const val DEFAULT_CHAPTER_FILTER_BY_READ = "default_chapter_filter_by_read"
 
-    const val defaultChapterFilterByDownloaded = "default_chapter_filter_by_downloaded"
+    const val DEFAULT_CHAPTER_FILTER_BY_DOWNLOADED = "default_chapter_filter_by_downloaded"
 
-    const val defaultChapterFilterByBookmarked = "default_chapter_filter_by_bookmarked"
+    const val DEFAULT_CHAPTER_FILTER_BY_BOOKMARKED = "default_chapter_filter_by_bookmarked"
 
-    const val defaultChapterSortBySourceOrNumber = "default_chapter_sort_by_source_or_number" // and upload date
+    const val DEFAULT_CHAPTER_SORT_BY_SOURCE_OR_NUMBER = "default_chapter_sort_by_source_or_number" // and upload date
 
-    const val defaultChapterSortByAscendingOrDescending = "default_chapter_sort_by_ascending_or_descending"
+    const val DEFAULT_CHAPTER_SORT_BY_ASCENDING_OR_DESCENDING = "default_chapter_sort_by_ascending_or_descending"
 
-    const val coverRatios = "cover_ratio"
+    const val COVER_RATIOS = "cover_ratio"
 
-    const val coverColors = "cover_colors"
+    const val COVER_COLORS = "cover_colors"
 
-    const val hideChapterTitles = "hide_chapter_titles"
+    const val HIDE_CHAPTER_TITLES = "hide_chapter_titles"
 
-    const val chaptersDescAsDefault = "chapters_desc_as_default"
+    const val CHAPTERS_DESC_AS_DEFAULT = "chapters_desc_as_default"
 }

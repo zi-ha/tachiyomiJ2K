@@ -11,7 +11,6 @@ import androidx.core.os.LocaleListCompat
 import androidx.preference.PreferenceScreen
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
 import eu.kanade.tachiyomi.util.lang.addBetaTag
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import eu.kanade.tachiyomi.util.system.systemLangContext
@@ -36,7 +35,6 @@ class SettingsGeneralController : SettingsController() {
                     when (preferences.startingTab().get()) {
                         -1 -> R.string.library
                         -2 -> R.string.recents
-                        -3 -> R.string.browse
                         else -> R.string.last_used_library_recents
                     }
                 entriesRes =
@@ -44,13 +42,12 @@ class SettingsGeneralController : SettingsController() {
                         R.string.last_used_library_recents,
                         R.string.library,
                         R.string.recents,
-                        R.string.browse,
                     )
-                entryValues = (0 downTo -3).toList()
+                entryValues = (0 downTo -2).toList()
                 defaultValue = 0
                 customSelectedValue =
                     when (val value = preferences.startingTab().get()) {
-                        in -3..-1 -> value
+                        in -2..-1 -> value
                         else -> 0
                     }
 
@@ -60,12 +57,11 @@ class SettingsGeneralController : SettingsController() {
                             0, 1 -> R.string.last_used_library_recents
                             -1 -> R.string.library
                             -2 -> R.string.recents
-                            -3 -> R.string.browse
                             else -> R.string.last_used_library_recents
                         }
                     customSelectedValue =
                         when (newValue) {
-                            in -3..-1 -> newValue as Int
+                            in -2..-1 -> newValue as Int
                             else -> 0
                         }
                     true
@@ -113,20 +109,6 @@ class SettingsGeneralController : SettingsController() {
                     titleRes = R.string.series_opens_new_chapters
                     summaryRes = R.string.no_new_chapters_open_details
                     defaultValue = true
-                }
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isUpdaterEnabled) {
-                preferenceCategory {
-                    titleRes = R.string.auto_updates
-
-                    intListPreference(activity) {
-                        key = Keys.shouldAutoUpdate
-                        titleRes = R.string.auto_update_app
-                        entryRange = 0..2
-                        entriesRes = arrayOf(R.string.over_any_network, R.string.over_wifi_only, R.string.dont_auto_update)
-                        defaultValue = AppDownloadInstallJob.ONLY_ON_UNMETERED
-                    }
                 }
             }
 

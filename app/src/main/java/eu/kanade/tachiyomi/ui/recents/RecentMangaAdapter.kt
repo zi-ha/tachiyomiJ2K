@@ -104,7 +104,7 @@ class RecentMangaAdapter(
             }.launchIn(delegate.scope())
     }
 
-    interface RecentsInterface : GroupedDownloadInterface {
+    interface RecentsInterface {
         fun onCoverClick(position: Int)
 
         fun onRemoveHistoryClicked(position: Int)

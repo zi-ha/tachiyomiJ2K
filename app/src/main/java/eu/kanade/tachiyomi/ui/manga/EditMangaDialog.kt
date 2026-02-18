@@ -222,7 +222,7 @@ class EditMangaDialog : DialogController {
             binding.mangaCover.load(
                 manga,
                 builder = {
-                    parameters(Parameters.Builder().set(MangaCoverFetcher.useCustomCover, false).build())
+                    parameters(Parameters.Builder().set(MangaCoverFetcher.USE_CUSTOM_COVER, false).build())
                 },
             )
             customCoverUri = null

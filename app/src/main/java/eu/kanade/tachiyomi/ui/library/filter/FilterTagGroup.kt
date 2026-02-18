@@ -12,8 +12,8 @@ import eu.kanade.tachiyomi.databinding.FilterTagGroupBinding
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getResourceColor
 
-class
-FilterTagGroup@JvmOverloads
+class FilterTagGroup
+    @JvmOverloads
     constructor(
         context: Context,
         attrs: AttributeSet? = null,

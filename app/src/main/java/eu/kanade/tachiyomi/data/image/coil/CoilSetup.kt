@@ -10,8 +10,6 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
-import eu.kanade.tachiyomi.network.NetworkHelper
-import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class CoilSetup(
@@ -22,7 +20,6 @@ class CoilSetup(
             ImageLoader
                 .Builder(context)
                 .apply {
-                    val callFactoryInit = { Injekt.get<NetworkHelper>().client }
                     val diskCacheInit = { CoilDiskCache.get(context) }
                     components {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -31,10 +28,9 @@ class CoilSetup(
                             add(GifDecoder.Factory())
                         }
                         add(TachiyomiImageDecoder.Factory())
-                        add(MangaCoverFetcher.Factory(lazy(callFactoryInit), lazy(diskCacheInit)))
+                        add(MangaCoverFetcher.Factory(lazy(diskCacheInit)))
                         add(MangaCoverKeyer())
                     }
-                    callFactory(callFactoryInit)
                     diskCache(diskCacheInit)
                     memoryCache { MemoryCache.Builder(context).maxSizePercent(0.40).build() }
                     crossfade(true)

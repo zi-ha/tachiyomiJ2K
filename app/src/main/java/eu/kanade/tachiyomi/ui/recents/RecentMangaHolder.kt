@@ -21,11 +21,9 @@ import com.google.android.material.shape.CornerFamily
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.ChapterHistory
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.image.coil.loadManga
 import eu.kanade.tachiyomi.databinding.RecentMangaItemBinding
 import eu.kanade.tachiyomi.databinding.RecentSubChapterItemBinding
-import eu.kanade.tachiyomi.ui.download.DownloadButton
 import eu.kanade.tachiyomi.ui.manga.chapter.BaseChapterHolder
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil.Companion.preferredChapterName
@@ -108,17 +106,11 @@ class RecentMangaHolder(
 
     @SuppressLint("ClickableViewAccessibility")
     fun bind(item: RecentMangaItem) {
-        val showDLs = adapter.showDownloads
+        val showDLs = false // adapter.showDownloads
         binding.recentCard.transitionName = "recents chapter $bindingAdapterPosition transition"
         val showRemoveHistory = adapter.showRemoveHistory
         val showTitleFirst = adapter.showTitleFirst
-        binding.downloadButton.downloadButton.isVisible = when (showDLs) {
-            RecentMangaAdapter.ShowRecentsDLs.None -> false
-            RecentMangaAdapter.ShowRecentsDLs.OnlyUnread, RecentMangaAdapter.ShowRecentsDLs.UnreadOrDownloaded -> !item.chapter.read
-            RecentMangaAdapter.ShowRecentsDLs.OnlyDownloaded -> true
-            RecentMangaAdapter.ShowRecentsDLs.All -> true
-        } &&
-            !item.mch.manga.isLocal()
+        binding.downloadButton.downloadButton.isVisible = false
 
         binding.cardLayout.updateLayoutParams<ConstraintLayout.LayoutParams> {
             height = (if (isSmallUpdates) 40 else 80).dpToPx
@@ -230,8 +222,8 @@ class RecentMangaHolder(
         }
         if (!item.mch.manga.isLocal()) {
             notifyStatus(
-                if (adapter.isSelected(flexibleAdapterPosition)) Download.State.CHECKED else item.status,
-                item.progress,
+                null,
+                0,
                 item.chapter.read,
             )
         }
@@ -248,7 +240,8 @@ class RecentMangaHolder(
                 .toList()
                 .shorterList()
                 .map {
-                    it?.findViewById<DownloadButton>(R.id.download_button)?.tag
+                    // it?.findViewById<DownloadButton>(R.id.download_button)?.tag
+                    null
                 }.toList()
         if (extraIds ==
             item.mch.extraChapters
@@ -472,26 +465,12 @@ class RecentMangaHolder(
         root.transitionName = "recents sub chapter ${chapter.id ?: 0L} transition"
         root.tag = "sub ${chapter.id}"
         downloadButton.root.tag = chapter.id
-        val downloadInfo =
-            item.downloadInfo.find { it.chapterId == chapter.id } ?: return
-        downloadButton.downloadButton.setOnClickListener {
-            downloadOrRemoveMenu(it, chapter, downloadInfo.status)
-        }
-        downloadButton.downloadButton.isVisible = when (showDLs) {
-            RecentMangaAdapter.ShowRecentsDLs.None -> false
-            RecentMangaAdapter.ShowRecentsDLs.OnlyUnread, RecentMangaAdapter.ShowRecentsDLs.UnreadOrDownloaded -> !chapter.read
-            RecentMangaAdapter.ShowRecentsDLs.OnlyDownloaded -> true
-            RecentMangaAdapter.ShowRecentsDLs.All -> true
-        } &&
-            !item.mch.manga.isLocal()
+        // Download logic removed
+        downloadButton.downloadButton.isVisible = false
         notifySubStatus(
             chapter,
-            if (adapter.isSelected(flexibleAdapterPosition)) {
-                Download.State.CHECKED
-            } else {
-                downloadInfo.status
-            },
-            downloadInfo.progress,
+            null,
+            0,
             chapter.read,
         )
     }
@@ -509,43 +488,22 @@ class RecentMangaHolder(
     }
 
     fun notifyStatus(
-        status: Download.State,
+        status: Any?, // Download.State,
         progress: Int,
         isRead: Boolean,
         animated: Boolean = false,
     ) {
-        binding.downloadButton.downloadButton.setDownloadStatus(status, progress, animated)
-        val isChapterRead =
-            if (adapter.showDownloads == RecentMangaAdapter.ShowRecentsDLs.UnreadOrDownloaded) isRead else true
-        binding.downloadButton.downloadButton.isVisible =
-            when (adapter.showDownloads) {
-                RecentMangaAdapter.ShowRecentsDLs.UnreadOrDownloaded,
-                RecentMangaAdapter.ShowRecentsDLs.OnlyDownloaded,
-                ->
-                    status !in Download.State.CHECKED..Download.State.NOT_DOWNLOADED || !isChapterRead
-                else -> binding.downloadButton.downloadButton.isVisible
-            }
+        // No-op
     }
 
     fun notifySubStatus(
         chapter: Chapter,
-        status: Download.State,
+        status: Any?, // Download.State,
         progress: Int,
         isRead: Boolean,
         animated: Boolean = false,
     ) {
-        val downloadButton = binding.moreChaptersLayout.findViewWithTag<DownloadButton>(chapter.id) ?: return
-        downloadButton.setDownloadStatus(status, progress, animated)
-        val isChapterRead =
-            if (adapter.showDownloads == RecentMangaAdapter.ShowRecentsDLs.UnreadOrDownloaded) isRead else true
-        downloadButton.isVisible =
-            when (adapter.showDownloads) {
-                RecentMangaAdapter.ShowRecentsDLs.UnreadOrDownloaded,
-                RecentMangaAdapter.ShowRecentsDLs.OnlyDownloaded,
-                ->
-                    status !in Download.State.CHECKED..Download.State.NOT_DOWNLOADED || !isChapterRead
-                else -> downloadButton.isVisible
-            }
+        // No-op
     }
 
     override fun getFrontView(): View =

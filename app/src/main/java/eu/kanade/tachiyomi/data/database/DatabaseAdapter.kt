@@ -10,17 +10,17 @@ val dateAdapter =
         override fun encode(value: Date): Long = value.time
     }
 
-private const val listOfStringsSeparator = ", "
+private const val LIST_OF_STRINGS_SEPARATOR = ", "
 val listOfStringsAdapter =
     object : ColumnAdapter<List<String>, String> {
         override fun decode(databaseValue: String) =
             if (databaseValue.isEmpty()) {
                 emptyList()
             } else {
-                databaseValue.split(listOfStringsSeparator)
+                databaseValue.split(LIST_OF_STRINGS_SEPARATOR)
             }
 
-        override fun encode(value: List<String>) = value.joinToString(separator = listOfStringsSeparator)
+        override fun encode(value: List<String>) = value.joinToString(separator = LIST_OF_STRINGS_SEPARATOR)
     }
 
 val updateStrategyAdapter =

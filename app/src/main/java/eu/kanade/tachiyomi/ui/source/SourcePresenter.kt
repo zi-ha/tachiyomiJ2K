@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.source
 
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.SourceManager
@@ -27,7 +26,6 @@ import java.util.TreeMap
 class SourcePresenter(
     val controller: BrowseController,
     val sourceManager: SourceManager = Injekt.get(),
-    val extensionManager: ExtensionManager = Injekt.get(),
     private val preferences: PreferencesHelper = Injekt.get(),
 ) {
     private var scope = CoroutineScope(Job() + Dispatchers.Default)

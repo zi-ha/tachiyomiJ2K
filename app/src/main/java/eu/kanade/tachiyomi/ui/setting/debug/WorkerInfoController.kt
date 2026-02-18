@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.merge
 
 class WorkerInfoController : BaseCoroutineController<SubDebugControllerBinding, WorkerInfoPresenter>() {
     companion object {
-        const val title = "Worker info"
+        const val TITLE = "Worker info"
     }
 
     override var presenter = WorkerInfoPresenter()
@@ -27,7 +27,7 @@ class WorkerInfoController : BaseCoroutineController<SubDebugControllerBinding, 
     private val itemAdapter = ItemAdapter<DebugInfoItem>()
     private val fastAdapter = FastAdapter.with(itemAdapter)
 
-    override fun getTitle() = title
+    override fun getTitle() = TITLE
 
     override fun createBinding(inflater: LayoutInflater) = SubDebugControllerBinding.inflate(inflater)
 

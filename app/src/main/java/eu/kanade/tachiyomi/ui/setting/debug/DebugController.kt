@@ -24,13 +24,13 @@ class DebugController : SettingsController() {
     override fun setupPreferenceScreen(screen: PreferenceScreen) =
         screen.apply {
             preference {
-                title = WorkerInfoController.title
+                title = WorkerInfoController.TITLE
                 onClick {
                     router.pushController(WorkerInfoController().withFadeTransaction())
                 }
             }
             preference {
-                title = BackupSchemaController.title
+                title = BackupSchemaController.TITLE
                 onClick {
                     router.pushController(BackupSchemaController().withFadeTransaction())
                 }

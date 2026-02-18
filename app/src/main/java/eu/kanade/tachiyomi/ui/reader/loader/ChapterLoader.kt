@@ -4,11 +4,8 @@ import android.content.Context
 import com.github.junrar.exception.UnsupportedRarV5Exception
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.util.system.withIOContext
 import timber.log.Timber
@@ -18,8 +15,6 @@ import timber.log.Timber
  */
 class ChapterLoader(
     private val context: Context,
-    private val downloadManager: DownloadManager,
-    private val downloadProvider: DownloadProvider,
     private val manga: Manga,
     private val source: Source,
 ) {
@@ -70,13 +65,9 @@ class ChapterLoader(
     /**
      * Returns the page loader to use for this [chapter].
      */
-    private fun getPageLoader(chapter: ReaderChapter): PageLoader {
-        val dbChapter = chapter.chapter
-        val isDownloaded = downloadManager.isChapterDownloaded(dbChapter, manga, skipCache = true)
-        return when {
-            isDownloaded -> DownloadPageLoader(chapter, manga, source, downloadManager, downloadProvider)
-            source is HttpSource -> HttpPageLoader(chapter, source)
-            source is LocalSource ->
+    private fun getPageLoader(chapter: ReaderChapter): PageLoader =
+        when (source) {
+            is LocalSource ->
                 source.getFormat(chapter.chapter).let { format ->
                     when (format) {
                         is LocalSource.Format.Directory -> DirectoryPageLoader(format.file)
@@ -87,10 +78,8 @@ class ChapterLoader(
                             } catch (e: UnsupportedRarV5Exception) {
                                 error(context.getString(R.string.loader_rar5_error))
                             }
-                        is LocalSource.Format.Epub -> EpubPageLoader(format.file)
                     }
                 }
             else -> error(context.getString(R.string.source_not_installed))
         }
-    }
 }

@@ -69,7 +69,7 @@ class FilteredLibraryController(
         this.filterCategories = filterCategories
         this.filterTags = filterTags
         if (filterTracked != 0 && filterTrackerName != null) {
-            FilterBottomSheet.FILTER_TRACKER = filterTrackerName
+            FilterBottomSheet.filterTracker = filterTrackerName
         }
         this.filterTrackingScore = filterTrackingScore
         this.filterStartYear = filterStartYear

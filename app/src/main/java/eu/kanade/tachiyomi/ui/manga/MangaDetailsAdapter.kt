@@ -142,7 +142,7 @@ class MangaDetailsAdapter(
 
         fun openInWebView()
 
-        fun startDownloadRange(position: Int)
+        // fun startDownloadRange(position: Int)
 
         fun readNextChapter(readingButton: View)
 

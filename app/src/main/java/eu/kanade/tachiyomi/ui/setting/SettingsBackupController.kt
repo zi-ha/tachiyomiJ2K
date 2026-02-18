@@ -76,7 +76,7 @@ class SettingsBackupController : SettingsController() {
                     }
 
                     if (!BackupRestoreJob.isRunning(context)) {
-                        (activity as? MainActivity)?.getExtensionUpdates(true)
+                        // (activity as? MainActivity)?.getExtensionUpdates(true)
                         val intent = Intent(Intent.ACTION_GET_CONTENT)
                         intent.addCategory(Intent.CATEGORY_OPENABLE)
                         intent.type = "*/*"
@@ -279,20 +279,6 @@ class SettingsBackupController : SettingsController() {
             val results = BackupFileValidator().validate(activity, uri)
 
             var message = activity.getString(R.string.restore_content_full)
-            if (results.missingSources.isNotEmpty()) {
-                message += "\n\n${activity.getString(R.string.restore_missing_sources)}\n${
-                    results.missingSources.joinToString(
-                        "\n",
-                    ) { "- $it" }
-                }"
-            }
-            if (results.missingTrackers.isNotEmpty()) {
-                message += "\n\n${activity.getString(R.string.restore_missing_trackers)}\n${
-                    results.missingTrackers.joinToString(
-                        "\n",
-                    ) { "- $it" }
-                }"
-            }
 
             activity
                 .materialAlertDialog()

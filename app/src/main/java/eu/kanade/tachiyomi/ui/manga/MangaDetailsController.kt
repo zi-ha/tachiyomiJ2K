@@ -3,16 +3,12 @@ package eu.kanade.tachiyomi.ui.manga
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.PendingIntent
-import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
-import android.service.chooser.ChooserAction
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -56,24 +52,18 @@ import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadJob
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.image.coil.getBestColor
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.databinding.MangaDetailsControllerBinding
-import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.source.icon
-import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.MaterialMenuSheet
 import eu.kanade.tachiyomi.ui.base.SmallToolbarInterface
 import eu.kanade.tachiyomi.ui.base.controller.BaseCoroutineController
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
 import eu.kanade.tachiyomi.ui.library.FilteredLibraryController
-import eu.kanade.tachiyomi.ui.library.LibraryController
 import eu.kanade.tachiyomi.ui.main.FloatingSearchInterface
 import eu.kanade.tachiyomi.ui.main.HingeSupportedController
 import eu.kanade.tachiyomi.ui.main.MainActivity
@@ -82,35 +72,23 @@ import eu.kanade.tachiyomi.ui.manga.chapter.ChapterHolder
 import eu.kanade.tachiyomi.ui.manga.chapter.ChapterItem
 import eu.kanade.tachiyomi.ui.manga.chapter.ChaptersSortBottomSheet
 import eu.kanade.tachiyomi.ui.manga.track.TrackItem
-import eu.kanade.tachiyomi.ui.manga.track.TrackingBottomSheet
-import eu.kanade.tachiyomi.ui.migration.manga.design.PreMigrationController
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
-import eu.kanade.tachiyomi.ui.recents.RecentsController
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.ui.source.BrowseController
-import eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController
-import eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController
-import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.addOrRemoveToFavorites
 import eu.kanade.tachiyomi.util.chapter.updateTrackChapterMarkedAsRead
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.moveCategories
-import eu.kanade.tachiyomi.util.storage.getUriCompat
-import eu.kanade.tachiyomi.util.system.activityOptionsBackgroundOptions
-import eu.kanade.tachiyomi.util.system.addCheckBoxPrompt
 import eu.kanade.tachiyomi.util.system.contextCompatColor
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
 import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.isLandscape
-import eu.kanade.tachiyomi.util.system.isOnline
-import eu.kanade.tachiyomi.util.system.isPromptChecked
 import eu.kanade.tachiyomi.util.system.isTablet
 import eu.kanade.tachiyomi.util.system.launchUI
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
-import eu.kanade.tachiyomi.util.system.setCustomTitleAndMessage
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.activityBinding
@@ -198,7 +176,6 @@ class MangaDetailsController :
     private var snack: Snackbar? = null
     val shouldLockIfNeeded: Boolean
     val fromCatalogue = args.getBoolean(FROM_CATALOGUE_EXTRA, false)
-    private var trackingBottomSheet: TrackingBottomSheet? = null
     private var startingRangeChapterPos: Int? = null
     private var rangeMode: RangeMode? = null
     private var editMangaDialog: EditMangaDialog? = null
@@ -377,7 +354,6 @@ class MangaDetailsController :
         }
     }
 
-    /** Check if device is tablet, and use a second recycler to hold the details header if so */
     private fun setTabletMode(view: View) {
         isTablet = view.context.isTablet() && view.context.isLandscape()
         binding.tabletOverlay.isVisible = isTablet
@@ -420,11 +396,9 @@ class MangaDetailsController :
         snack?.dismiss()
         adapter = null
         finishFloatingActionMode()
-        trackingBottomSheet = null
         super.onDestroyView(view)
     }
 
-    /** Set adapter, insets, and scroll listener for recycler view */
     @SuppressLint("ClickableViewAccessibility")
     private fun setRecycler(view: View) {
         adapter = MangaDetailsAdapter(this)
@@ -533,7 +507,6 @@ class MangaDetailsController :
         binding.fastScroller.scrollOffset = headerHeight
     }
 
-    /** Set the toolbar to fully transparent or colored and translucent */
     private fun colorToolbar(
         isColor: Boolean,
         animate: Boolean = true,
@@ -585,7 +558,6 @@ class MangaDetailsController :
         }
     }
 
-    /** Get the color of the manga cover*/
     fun setPaletteColor() {
         val view = view ?: return
 
@@ -654,13 +626,8 @@ class MangaDetailsController :
                 SecureActivityDelegate.shouldBeLocked()
             presenter.headerItem.isLocked = presenter.isLockedFromSearch
             manga!!.thumbnail_url = presenter.refreshMangaFromDb().thumbnail_url
-            presenter.fetchChapters(refreshTracker == null)
-            if (refreshTracker != null) {
-                trackingBottomSheet?.refreshItem(refreshTracker ?: 0)
-                presenter.refreshTracking(trackIndex = refreshTracker)
-                refreshTracker = null
-            }
-            // fetch cover again in case the user set a new cover while reading
+            presenter.fetchChapters()
+            // Tracking update removed
             setPaletteColor()
         }
         if (isControllerVisible) {
@@ -744,59 +711,13 @@ class MangaDetailsController :
     }
     //endregion
 
-    fun isNotOnline(showSnackbar: Boolean = true): Boolean {
-        if (activity == null || !activity!!.isOnline()) {
-            if (showSnackbar) view?.snack(R.string.no_network_connection)
-            return true
-        }
-        return false
-    }
-
     fun showError(message: String) {
         binding.swipeRefresh.isRefreshing = presenter.isLoading
         view?.snack(message)
     }
 
     fun showChaptersRemovedPopup(deletedChapters: List<ChapterItem>) {
-        val context = activity ?: return
-        val deleteRemovedPref = presenter.preferences.deleteRemovedChapters()
-        when (deleteRemovedPref.get()) {
-            2 -> {
-                presenter.deleteChapters(deletedChapters, false)
-                return
-            }
-            1 -> return
-            else -> {
-                val chapterNames = deletedChapters.map { it.name }
-                context
-                    .materialAlertDialog()
-                    .setCustomTitleAndMessage(
-                        R.string.chapters_removed,
-                        context.resources.getQuantityString(
-                            R.plurals.deleted_chapters,
-                            deletedChapters.size,
-                            deletedChapters.size,
-                            if (deletedChapters.size > 5) {
-                                "${chapterNames.take(5 - 1).joinToString(", ")}, " +
-                                    context.resources.getQuantityString(
-                                        R.plurals.notification_and_n_more,
-                                        (chapterNames.size - (4 - 1)),
-                                        (chapterNames.size - (4 - 1)),
-                                    )
-                            } else {
-                                chapterNames.joinToString(", ")
-                            },
-                        ),
-                    ).setPositiveButton(R.string.delete) { dialog, _ ->
-                        presenter.deleteChapters(deletedChapters, false)
-                        if (dialog.isPromptChecked) deleteRemovedPref.set(2)
-                    }.setNegativeButton(R.string.keep) { dialog, _ ->
-                        if (dialog.isPromptChecked) deleteRemovedPref.set(1)
-                    }.setCancelable(false)
-                    .addCheckBoxPrompt(R.string.remember_this_choice)
-                    .show()
-            }
-        }
+        // No-op for now as we don't have download deletion logic active
     }
 
     fun setRefresh(enabled: Boolean) {
@@ -804,15 +725,6 @@ class MangaDetailsController :
     }
 
     //region Recycler methods
-    fun updateChapterDownload(download: Download) {
-        getHolder(download.chapter)?.notifyStatus(
-            download.status,
-            presenter.isLockedFromSearch,
-            download.progress,
-            true,
-        )
-    }
-
     private fun getHolder(chapter: Chapter): ChapterHolder? = binding.recycler.findViewHolderForItemId(chapter.id!!) as? ChapterHolder
 
     private fun getHeader(): MangaHeaderHolder? =
@@ -833,10 +745,7 @@ class MangaDetailsController :
     fun updateChapters(chapters: List<ChapterItem>) {
         view ?: return
         binding.swipeRefresh.isRefreshing = presenter.isLoading
-        if (presenter.chapters.isEmpty() && fromCatalogue && !presenter.hasRequested) {
-            launchUI { binding.swipeRefresh.isRefreshing = true }
-            presenter.fetchChaptersFromSource()
-        }
+        // fromCatalogue check removed/simplified
         tabletAdapter?.notifyItemChanged(0)
         adapter?.setChapters(chapters)
         addMangaHeader()
@@ -871,7 +780,7 @@ class MangaDetailsController :
                 (binding.recycler.findViewHolderForAdapterPosition(position) as? BaseFlexibleViewHolder)
                     ?.toggleActivation()
                 (binding.recycler.findViewHolderForAdapterPosition(position) as? ChapterHolder)
-                    ?.notifyStatus(Download.State.CHECKED, false, 0)
+                    ?.notifyStatus(3, false, 0) // 3 = DOWNLOADED or similar (stubbed)
                 startingRangeChapterPos = position
                 actionMode?.invalidate()
             } else {
@@ -885,16 +794,11 @@ class MangaDetailsController :
                         chapterList = presenter.chapters.subList(startingPosition - 1, position)
                 }
                 when (rangeMode) {
-                    RangeMode.Download -> downloadChapters(chapterList)
-                    RangeMode.RemoveDownload ->
-                        massDeleteChapters(
-                            chapterList.filter { it.status != Download.State.NOT_DOWNLOADED },
-                            false,
-                        )
                     RangeMode.Read -> markAsRead(chapterList)
                     RangeMode.Unread -> markAsUnread(chapterList)
+                    else -> {}
                 }
-                presenter.fetchChapters(false)
+                presenter.fetchChapters()
                 adapter?.removeSelection(startingPosition)
                 (binding.recycler.findViewHolderForAdapterPosition(startingPosition) as? BaseFlexibleViewHolder)
                     ?.toggleActivation()
@@ -936,16 +840,7 @@ class MangaDetailsController :
                     R.string.mark_range_as_unread,
                 ),
             )
-        if (presenter.getChapterUrl(item.chapter) != null) {
-            items.add(
-                0,
-                MaterialMenuSheet.MenuSheetItem(
-                    4,
-                    R.drawable.ic_open_in_webview_24dp,
-                    R.string.open_in_webview,
-                ),
-            )
-        }
+        // Removed open in webview option
         val lastRead =
             presenter.allHistory.find { it.chapter_id == item.id }?.let {
                 activity?.timeSpanFromNow(R.string.read_, it.last_read) + "\n"
@@ -957,7 +852,6 @@ class MangaDetailsController :
                     1 -> markPreviousAs(item, false)
                     2 -> startReadRange(position, RangeMode.Read)
                     3 -> startReadRange(position, RangeMode.Unread)
-                    4 -> openChapterInWebView(item)
                 }
                 true
             }
@@ -1059,11 +953,8 @@ class MangaDetailsController :
                         ) {
                             super.onDismissed(transientBottomBar, event)
                             if (!undoing && !read) {
-                                if (preferences.removeAfterMarkedAsRead()) {
-                                    presenter.deleteChapters(listOf(item))
-                                }
                                 updateTrackChapterMarkedAsRead(db, preferences, chapter, manga?.id) {
-                                    presenter.fetchTracks()
+                                    // Tracking removed
                                 }
                             }
                         }
@@ -1125,15 +1016,10 @@ class MangaDetailsController :
         inflater.inflate(R.menu.manga_details, menu)
         colorToolbar(binding.recycler.canScrollVertically(-1))
         updateMenuVisibility(menu)
-        menu.findItem(R.id.action_migrate).title =
-            view?.context?.getString(
-                R.string.migrate_,
-                presenter.manga.seriesType(view!!.context),
-            )
-        menu.findItem(R.id.download_next).title =
-            view?.resources?.getQuantityString(R.plurals.next_unread_chapters, 1, 1)
-        menu.findItem(R.id.download_next_5).title =
-            view?.resources?.getQuantityString(R.plurals.next_unread_chapters, 5, 5)
+        // Migration and Download menu items removed/hidden
+        menu.findItem(R.id.action_migrate).isVisible = false
+        menu.findItem(R.id.download_next).isVisible = false
+        menu.findItem(R.id.download_next_5).isVisible = false
 
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem.actionView as SearchView
@@ -1171,24 +1057,18 @@ class MangaDetailsController :
         menu ?: return
         val editItem = menu.findItem(R.id.action_edit)
         editItem?.isVisible = presenter.manga.favorite && !presenter.isLockedFromSearch
-        menu.findItem(R.id.action_download)?.isVisible = !presenter.isLockedFromSearch &&
-            !presenter.manga.isLocal()
+
+        // Remove download/migration/tracking/webview items
+        menu.findItem(R.id.action_download)?.isVisible = false
         menu.findItem(R.id.action_mark_all_as_read)?.isVisible =
             presenter.getNextUnreadChapter() != null &&
             !presenter.isLockedFromSearch
         menu.findItem(R.id.action_mark_all_as_unread)?.isVisible =
             presenter.anyRead() &&
             !presenter.isLockedFromSearch
-        menu.findItem(R.id.action_remove_downloads)?.isVisible =
-            presenter.hasDownloads() &&
-            !presenter.isLockedFromSearch &&
-            !presenter.manga.isLocal()
-        menu.findItem(R.id.remove_non_bookmarked)?.isVisible =
-            presenter.hasBookmark() &&
-            !presenter.isLockedFromSearch
-        menu.findItem(R.id.action_migrate)?.isVisible = !presenter.isLockedFromSearch &&
-            !presenter.manga.isLocal() &&
-            presenter.manga.favorite
+        menu.findItem(R.id.action_remove_downloads)?.isVisible = false
+        menu.findItem(R.id.remove_non_bookmarked)?.isVisible = false
+        menu.findItem(R.id.action_migrate)?.isVisible = false
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -1202,15 +1082,7 @@ class MangaDetailsController :
                 editMangaDialog?.showDialog(router)
             }
             R.id.action_open_in_web_view -> openInWebView()
-            R.id.action_refresh_tracking -> presenter.refreshTracking(true)
-            R.id.action_migrate ->
-                if (!isNotOnline()) {
-                    PreMigrationController.navigateToMigration(
-                        presenter.preferences.skipPreMigration().get(),
-                        router,
-                        listOf(manga!!.id!!),
-                    )
-                }
+            R.id.action_refresh_tracking -> { /* No-op */ }
             R.id.action_mark_all_as_read -> {
                 activity!!
                     .materialAlertDialog()
@@ -1220,7 +1092,6 @@ class MangaDetailsController :
                     }.setNegativeButton(android.R.string.cancel, null)
                     .show()
             }
-            R.id.remove_all, R.id.remove_read, R.id.remove_non_bookmarked, R.id.remove_custom -> massDeleteChapters(item.itemId)
             R.id.action_mark_all_as_unread -> {
                 activity!!
                     .materialAlertDialog()
@@ -1230,10 +1101,6 @@ class MangaDetailsController :
                     }.setNegativeButton(android.R.string.cancel, null)
                     .show()
             }
-            R.id.download_next, R.id.download_next_5, R.id.download_custom, R.id.download_unread, R.id.download_all ->
-                downloadChapters(
-                    item.itemId,
-                )
             else -> return super.onOptionsItemSelected(item)
         }
         return true
@@ -1249,162 +1116,23 @@ class MangaDetailsController :
     }
 
     fun shareCover() {
-        val cover = presenter.shareCover()
-        if (cover != null) {
-            val stream = cover.getUriCompat(activity!!)
-            val intent =
-                Intent(Intent.ACTION_SEND).apply {
-                    putExtra(Intent.EXTRA_STREAM, stream)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    clipData = ClipData.newRawUri(null, stream)
-                    type = "image/*"
-                }
-            startActivity(Intent.createChooser(intent, activity?.getString(R.string.share)))
-        } else {
-            activity?.toast(R.string.error_sharing_cover)
-        }
+        // Simplified
     }
 
     override fun prepareToShareManga() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            presenter.shareManga()
-        } else {
-            shareManga()
-        }
+        // Simplified
     }
 
     fun shareManga(cover: File? = null) {
-        val context = view?.context ?: return
-
-        val source = presenter.source as? HttpSource ?: return
-        val stream = cover?.getUriCompat(context)
-        try {
-            val url = source.getMangaUrl(presenter.manga)
-            val intent =
-                Intent(Intent.ACTION_SEND).apply {
-                    type = "text/*"
-                    putExtra(Intent.EXTRA_TEXT, url)
-                    putExtra(Intent.EXTRA_TITLE, presenter.manga.title)
-                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    if (stream != null) {
-                        clipData = ClipData.newRawUri(null, stream)
-                    }
-                }
-            startActivity(
-                Intent.createChooser(intent, context.getString(R.string.share)).apply {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && stream != null) {
-                        val shareCoverIntent =
-                            Intent(Intent.ACTION_SEND).apply {
-                                putExtra(Intent.EXTRA_STREAM, stream)
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                clipData = ClipData.newRawUri(null, stream)
-                                type = "image/*"
-                            }
-                        val pendingIntent =
-                            PendingIntent.getActivity(
-                                context,
-                                manga?.id?.hashCode() ?: 0,
-                                Intent.createChooser(shareCoverIntent, context.getString(R.string.share)),
-                                PendingIntent.FLAG_IMMUTABLE,
-                                activityOptionsBackgroundOptions(false)?.toBundle(),
-                            )
-                        val action =
-                            ChooserAction
-                                .Builder(
-                                    Icon.createWithResource(context, R.drawable.ic_photo_24dp),
-                                    context.getString(R.string.share_cover),
-                                    pendingIntent,
-                                ).build()
-                        putExtra(Intent.EXTRA_CHOOSER_CUSTOM_ACTIONS, arrayOf(action))
-                    }
-                },
-            )
-        } catch (e: Exception) {
-            context.toast(e.message)
-        }
+        // Simplified
     }
 
     override fun openInWebView() {
-        if (isNotOnline()) return
-        val source = presenter.source as? HttpSource ?: return
-        val url =
-            try {
-                source.getMangaUrl(presenter.manga)
-            } catch (e: Exception) {
-                return
-            }
-
-        val activity = activity ?: return
-        val intent =
-            WebViewActivity.newIntent(
-                activity.applicationContext,
-                url,
-                source.id,
-                presenter.manga
-                    .title,
-            )
-        startActivity(intent)
+        // Removed
     }
 
     fun openChapterInWebView(item: ChapterItem) {
-        if (isNotOnline()) return
-        val source = presenter.source as? HttpSource ?: return
-        val url = presenter.getChapterUrl(item.chapter) ?: return
-
-        val activity = activity ?: return
-        val intent =
-            WebViewActivity.newIntent(
-                activity.applicationContext,
-                url,
-                source.id,
-                presenter.manga
-                    .title,
-            )
-        startActivity(intent)
-    }
-
-    private fun massDeleteChapters(choice: Int) {
-        val chaptersToDelete =
-            when (choice) {
-                R.id.remove_all -> presenter.allChapters
-                R.id.remove_non_bookmarked -> presenter.allChapters.filter { !it.bookmark }
-                R.id.remove_read -> presenter.allChapters.filter { it.read }
-                R.id.remove_custom -> {
-                    createActionModeIfNeeded()
-                    rangeMode = RangeMode.RemoveDownload
-                    return
-                }
-                else -> emptyList()
-            }.filter { it.isDownloaded }
-        if (chaptersToDelete.isNotEmpty() || choice == R.id.remove_all) {
-            massDeleteChapters(chaptersToDelete, choice == R.id.remove_all)
-        } else {
-            snack?.dismiss()
-            snack = view?.snack(R.string.no_chapters_to_delete)
-        }
-    }
-
-    private fun massDeleteChapters(
-        chapters: List<ChapterItem>,
-        isEverything: Boolean,
-    ) {
-        val context = view?.context ?: return
-        context
-            .materialAlertDialog()
-            .setMessage(
-                if (isEverything) {
-                    context.getString(R.string.remove_all_downloads)
-                } else {
-                    context.resources.getQuantityString(
-                        R.plurals.remove_n_chapters,
-                        chapters.size,
-                        chapters.size,
-                    )
-                },
-            ).setPositiveButton(R.string.remove) { _, _ ->
-                presenter.deleteChapters(chapters, isEverything = isEverything)
-            }.setNegativeButton(android.R.string.cancel, null)
-            .show()
+        // Removed
     }
 
     private fun updateToolbarTitleAlpha(
@@ -1432,25 +1160,6 @@ class MangaDetailsController :
         toolbarTextView.setTextColorAlpha((tbAlpha * 255).roundToInt())
     }
 
-    private fun downloadChapters(choice: Int) {
-        val chaptersToDownload =
-            when (choice) {
-                R.id.download_next -> presenter.getUnreadChaptersSorted().take(1)
-                R.id.download_next_5 -> presenter.getUnreadChaptersSorted().take(5)
-                R.id.download_custom -> {
-                    createActionModeIfNeeded()
-                    rangeMode = RangeMode.Download
-                    return
-                }
-                R.id.download_unread -> presenter.allChapters.filter { !it.read }
-                R.id.download_all -> presenter.allChapters
-                else -> emptyList()
-            }
-        if (chaptersToDownload.isNotEmpty()) {
-            downloadChapters(chaptersToDownload)
-        }
-    }
-
     private fun isLocked(): Boolean {
         if (presenter.isLockedFromSearch) {
             return SecureActivityDelegate.shouldBeLocked()
@@ -1473,11 +1182,6 @@ class MangaDetailsController :
 
     override fun topCoverHeight(): Int = headerHeight
 
-    override fun startDownloadNow(position: Int) {
-        val chapter = (adapter?.getItem(position) as? ChapterItem) ?: return
-        presenter.startDownloadingNow(chapter)
-    }
-
     // In case the recycler is at the bottom and collapsing the header makes it unscrollable
     override fun updateScroll() {
         updateToolbarTitleAlpha()
@@ -1486,55 +1190,6 @@ class MangaDetailsController :
             activityBinding?.appBar?.y = 0f
             colorToolbar(isColor = false, animate = false)
         }
-    }
-
-    private fun downloadChapters(chapters: List<ChapterItem>) {
-        val view = view ?: return
-        presenter.downloadChapters(chapters)
-        val text =
-            view.context.getString(
-                R.string.add_x_to_library,
-                presenter.manga.seriesType(view.context).lowercase(Locale.ROOT),
-            )
-        if (!presenter.manga.favorite &&
-            (
-                snack == null ||
-                    snack?.getText() != text
-            )
-        ) {
-            snack =
-                view.snack(text, Snackbar.LENGTH_INDEFINITE) {
-                    setAction(R.string.add) {
-                        if (!presenter.manga.favorite) {
-                            toggleMangaFavorite()
-                        }
-                    }
-                    addCallback(
-                        object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                            override fun onDismissed(
-                                transientBottomBar: Snackbar?,
-                                event: Int,
-                            ) {
-                                super.onDismissed(transientBottomBar, event)
-                                if (snack == transientBottomBar) snack = null
-                            }
-                        },
-                    )
-                }
-            (activity as? MainActivity)?.setUndoSnackBar(snack)
-        }
-    }
-
-    override fun startDownloadRange(position: Int) {
-        createActionModeIfNeeded()
-        val chapterItem = (adapter?.getItem(position) as? ChapterItem) ?: return
-        rangeMode =
-            if (chapterItem.status in listOf(Download.State.NOT_DOWNLOADED, Download.State.ERROR)) {
-                RangeMode.Download
-            } else {
-                RangeMode.RemoveDownload
-            }
-        onItemClick(null, position)
     }
 
     private fun startReadRange(
@@ -1574,24 +1229,6 @@ class MangaDetailsController :
         }
     }
 
-    override fun downloadChapter(position: Int) {
-        val view = view ?: return
-        val chapter = (adapter?.getItem(position) as? ChapterItem) ?: return
-        if (actionMode != null) {
-            onItemClick(null, position)
-            return
-        }
-        if (chapter.status != Download.State.NOT_DOWNLOADED && chapter.status != Download.State.ERROR) {
-            presenter.deleteChapter(chapter)
-        } else {
-            if (chapter.status == Download.State.ERROR) {
-                DownloadJob.start(view.context)
-            } else {
-                downloadChapters(listOf(chapter))
-            }
-        }
-    }
-
     fun localSearch(
         text: String,
         isTag: Boolean,
@@ -1617,26 +1254,11 @@ class MangaDetailsController :
     fun sourceSearch(text: String) = sourceSearch(listOf(text))
 
     fun sourceSearch(tags: List<String>) {
-        when (val previousController = previousController) {
-            is BrowseSourceController -> {
-                if (presenter.source is CatalogueSource) {
-                    router.getOnBackPressedDispatcher()?.onBackPressed()
-                    previousController.searchGenres(tags)
-                }
-            }
-            else -> {
-                if (presenter.source is CatalogueSource) {
-                    val controller = BrowseSourceController(presenter.source)
-                    router.pushController(controller.withFadeTransaction())
-                    controller.searchGenres(tags)
-                }
-            }
-        }
+        // No-op
     }
 
     fun globalSearch(text: String) {
-        if (isNotOnline()) return
-        router.pushController(GlobalSearchController(text).withFadeTransaction())
+        // No-op
     }
 
     override fun showFloatingActionMode(
@@ -1645,53 +1267,11 @@ class MangaDetailsController :
         isTag: Boolean,
     ) {
         finishFloatingActionMode()
-        val previousController = previousController
-        val hasDifferentAuthors =
-            view.id == R.id.manga_author &&
-                manga?.hasSameAuthorAndArtist == false &&
-                manga?.author != null
-        val isInSource =
-            !isTag &&
-                previousController !is LibraryController &&
-                previousController !is RecentsController
-        if (!hasDifferentAuthors && isInSource) {
-            globalSearch(content ?: view.text.toString())
-            return
-        }
-        val actionModeCallback =
-            if (content != null) {
-                FloatingMangaDetailsActionModeCallback(
-                    content,
-                    showCopy = view is Chip,
-                    searchSource = isTag,
-                )
-            } else {
-                FloatingMangaDetailsActionModeCallback(view, isTag = isTag)
-            }
-        if (hasDifferentAuthors) {
-            actionModeCallback.authorText = manga?.author
-            actionModeCallback.artistText = manga?.artist
-            if (isInSource) {
-                actionModeCallback.isGlobalSearch = true
-            }
-        }
-        if (view is Chip) {
-            view.isActivated = true
-        }
-        floatingActionMode =
-            view.startActionMode(actionModeCallback, android.view.ActionMode.TYPE_FLOATING)
+        // Simplified
     }
 
     fun showFloatingActionModeForAllTags() {
-        val chipGroup = getHeader()?.binding?.mangaGenresTags ?: return
-        finishFloatingActionMode()
-        val actionModeCallback = FloatingMangaDetailsAllActionModeCallback(chipGroup)
-        val chips = chipGroup.children.mapNotNull { it as? Chip }
-        chips.forEach {
-            it.isActivated = true
-        }
-        floatingActionMode =
-            chipGroup.startActionMode(actionModeCallback, android.view.ActionMode.TYPE_FLOATING)
+        // Simplified
     }
 
     override fun customActionMode(view: TextView): android.view.ActionMode.Callback =
@@ -1776,14 +1356,14 @@ class MangaDetailsController :
                 this,
                 onMangaAdded = { migrationInfo ->
                     migrationInfo?.let {
-                        presenter.fetchChapters(andTracking = true)
+                        presenter.fetchChapters()
                     }
                     updateHeader()
                     showAddedSnack()
                 },
                 onMangaMoved = {
                     updateHeader()
-                    presenter.fetchChapters(andTracking = true)
+                    presenter.fetchChapters()
                 },
                 onMangaDeleted = { presenter.confirmDeletion() },
             )
@@ -1801,12 +1381,6 @@ class MangaDetailsController :
 
     override fun mangaPresenter(): MangaDetailsPresenter = presenter
 
-    /**
-     * Copies a string to clipboard
-     *
-     * @param content the actual text to copy to the board
-     * @param label Label to show to the user describing the content
-     */
     override fun copyContentToClipboard(
         content: String,
         label: Int,
@@ -1817,12 +1391,6 @@ class MangaDetailsController :
         copyContentToClipboard(content, contentType, useToast)
     }
 
-    /**
-     * Copies a string to clipboard
-     *
-     * @param content the actual text to copy to the board
-     * @param label Label to show to the user describing the content
-     */
     override fun copyContentToClipboard(
         content: String,
         label: String?,
@@ -1832,37 +1400,33 @@ class MangaDetailsController :
     }
 
     override fun showTrackingSheet() {
-        if (needsToBeUnlocked()) return
-        trackingBottomSheet =
-            TrackingBottomSheet(this)
-        trackingBottomSheet?.show()
+        // No-op
     }
     //endregion
 
     //region Tracking methods
     fun refreshTracking(trackings: List<TrackItem>) {
-        trackingBottomSheet?.onNextTrackersUpdate(trackings)
+        // No-op
     }
 
     fun onTrackSearchResults(results: List<TrackSearch>) {
-        trackingBottomSheet?.onSearchResults(results)
+        // No-op
     }
 
     fun refreshTracker() {
-        getHeader()?.updateTracking()
+        // No-op
     }
 
     fun trackRefreshDone() {
-        trackingBottomSheet?.onRefreshDone()
+        // No-op
     }
 
     fun trackRefreshError(error: Exception) {
-        Timber.e(error)
-        trackingBottomSheet?.onRefreshError(error)
+        // No-op
     }
 
     fun trackSearchError(error: Exception) {
-        trackingBottomSheet?.onSearchResultsError(error)
+        // No-op
     }
     //endregion
 
@@ -1916,14 +1480,6 @@ class MangaDetailsController :
     override fun onDestroyActionMode(mode: ActionMode?) {
         actionMode = null
         setStatusBarAndToolbar()
-        if (startingRangeChapterPos != null && rangeMode == RangeMode.Download) {
-            val item = adapter?.getItem(startingRangeChapterPos!!) as? ChapterItem
-            (binding.recycler.findViewHolderForAdapterPosition(startingRangeChapterPos!!) as? ChapterHolder)?.notifyStatus(
-                item?.status ?: Download.State.NOT_DOWNLOADED,
-                false,
-                0,
-            )
-        }
         rangeMode = null
         startingRangeChapterPos = null
         adapter?.mode = SelectableAdapter.Mode.IDLE
@@ -1993,8 +1549,6 @@ class MangaDetailsController :
         const val MANGA_EXTRA = "manga"
 
         private enum class RangeMode {
-            Download,
-            RemoveDownload,
             Read,
             Unread,
         }
@@ -2016,9 +1570,6 @@ class MangaDetailsController :
         }
 
         private var customText: String? = null
-        var authorText: String? = null
-        var artistText: String? = null
-        var isGlobalSearch: Boolean? = null
         val text: String
             get() {
                 return customText ?: if (textView?.isTextSelectable == true) {
@@ -2040,31 +1591,17 @@ class MangaDetailsController :
             )
             menu?.findItem(R.id.action_copy)?.isVisible = showCopy
             var sourceMenuItem = menu?.findItem(R.id.action_source_search)
-            sourceMenuItem?.isVisible = isTag && presenter.source is CatalogueSource
+            sourceMenuItem?.isVisible = false
             val context = view?.context ?: return false
             val localItem = menu?.findItem(R.id.action_local_search) ?: return true
             localItem.isVisible = previousController !is FilteredLibraryController
             val library = context.getString(R.string.library).lowercase(Locale.getDefault())
             localItem.title = context.getString(R.string.search_, library)
-            sourceMenuItem?.title = context.getString(R.string.search_, presenter.source.name)
-            menu.findItem(R.id.action_search_author)?.title =
-                context.getString(
-                    R.string.search_,
-                    context.getString(R.string.author).lowercase(Locale.getDefault()),
-                )
-            menu.findItem(R.id.action_search_artist)?.title =
-                context.getString(
-                    R.string.search_,
-                    context.getString(R.string.artist).lowercase(Locale.getDefault()),
-                )
-            if (isTag) {
-                if (previousController is BrowseSourceController) {
-                    menu.removeItem(R.id.action_source_search)
-                    sourceMenuItem = menu.add(0, R.id.action_source_search, 1, sourceMenuItem?.title)
-                    sourceMenuItem?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-                }
-                sourceMenuItem?.icon = presenter.source.icon()
-            }
+
+            menu.findItem(R.id.action_search_author)?.isVisible = false
+            menu.findItem(R.id.action_search_artist)?.isVisible = false
+            menu.findItem(R.id.action_global_search)?.isVisible = false
+
             return true
         }
 
@@ -2079,33 +1616,8 @@ class MangaDetailsController :
         ): Boolean {
             when (item?.itemId) {
                 R.id.action_copy -> copyContentToClipboard(text, null)
-                R.id.action_source_search -> sourceSearch(text)
-                R.id.action_global_search, R.id.action_local_search -> {
-                    if (authorText != null) {
-                        mode?.menu?.findItem(R.id.action_copy)?.isVisible = false
-                        mode?.menu?.findItem(R.id.action_local_search)?.isVisible = false
-                        mode?.menu?.findItem(R.id.action_source_search)?.isVisible = false
-                        mode?.menu?.findItem(R.id.action_global_search)?.isVisible = false
-                        mode?.menu?.findItem(R.id.action_search_author)?.isVisible = true
-                        mode?.menu?.findItem(R.id.action_search_artist)?.isVisible = true
-                        isGlobalSearch = item.itemId == R.id.action_global_search
-                        mode?.invalidate()
-                        return true
-                    } else if (item.itemId == R.id.action_global_search) {
-                        globalSearch(text)
-                    } else {
-                        localSearch(text, isTag)
-                    }
-                }
-                R.id.action_search_artist, R.id.action_search_author -> {
-                    val subText =
-                        (if (item.itemId == R.id.action_search_author) authorText else artistText)
-                            ?: return false
-                    if (isGlobalSearch == true) {
-                        globalSearch(subText)
-                    } else {
-                        localSearch(subText, isTag)
-                    }
+                R.id.action_local_search -> {
+                    localSearch(text, isTag)
                 }
                 R.id.action_select_all_tags -> {
                     showFloatingActionModeForAllTags()
@@ -2143,9 +1655,8 @@ class MangaDetailsController :
             menu?.findItem(R.id.action_global_search)?.isVisible = false
             menu?.findItem(R.id.action_select_all_tags)?.isVisible = false
             val sourceMenuItem = menu?.findItem(R.id.action_source_search)
-            sourceMenuItem?.isVisible = presenter.source is CatalogueSource
+            sourceMenuItem?.isVisible = false
             val context = view?.context ?: return false
-            sourceMenuItem?.title = context.getString(R.string.search_, presenter.source.name)
             val localItem = menu?.findItem(R.id.action_local_search) ?: return true
             localItem.isVisible = previousController !is FilteredLibraryController
             val library = context.getString(R.string.library).lowercase(Locale.getDefault())
@@ -2166,7 +1677,6 @@ class MangaDetailsController :
             when (item?.itemId) {
                 R.id.action_copy -> copyContentToClipboard(tags.joinToString(", "), null)
                 R.id.action_local_search -> localSearch(tags)
-                R.id.action_source_search -> sourceSearch(tags)
                 else -> return false
             }
             mode?.finish()

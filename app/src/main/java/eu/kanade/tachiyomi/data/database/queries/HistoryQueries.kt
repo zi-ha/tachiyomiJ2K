@@ -13,29 +13,6 @@ import eu.kanade.tachiyomi.util.lang.sqLite
 
 interface HistoryQueries : DbProvider {
     /**
-     * Insert history into database
-     * @param history object containing history information
-     */
-//    fun insertHistory(history: History) = db.put().`object`(history).prepare()
-
-//    /**
-//     * Returns history of recent manga containing last read chapter in 25s
-//     * @param date recent date range
-//     * @offset offset the db by
-//     */
-//    fun getRecentManga(date: Date, offset: Int = 0, search: String = "") = db.get()
-//        .listOfObjects(MangaChapterHistory::class.java)
-//        .withQuery(
-//            RawQuery.builder()
-//                .query(getRecentMangasQuery(offset, search.sqLite))
-//                .args(date.time)
-//                .observesTables(HistoryTable.TABLE)
-//                .build()
-//        )
-//        .withGetResolver(MangaChapterHistoryGetResolver.INSTANCE)
-//        .prepare()
-
-    /**
      * Returns history of recent manga containing last read chapter in 25s
      * @param date recent date range
      * @offset offset the db by

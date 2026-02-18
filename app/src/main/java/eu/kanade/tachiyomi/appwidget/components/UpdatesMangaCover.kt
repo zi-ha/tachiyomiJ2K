@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package eu.kanade.tachiyomi.appwidget.components
 
 import android.graphics.Bitmap

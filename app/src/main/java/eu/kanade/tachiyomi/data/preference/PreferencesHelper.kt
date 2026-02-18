@@ -493,23 +493,23 @@ class PreferencesHelper(
 
     fun extensionInstaller() = flowPrefs.getInt("extension_installer", ExtensionInstaller.PACKAGE_INSTALLER)
 
-    fun filterChapterByRead() = flowPrefs.getInt(Keys.defaultChapterFilterByRead, Manga.SHOW_ALL)
+    fun filterChapterByRead() = flowPrefs.getInt(Keys.DEFAULT_CHAPTER_FILTER_BY_READ, Manga.SHOW_ALL)
 
-    fun filterChapterByDownloaded() = flowPrefs.getInt(Keys.defaultChapterFilterByDownloaded, Manga.SHOW_ALL)
+    fun filterChapterByDownloaded() = flowPrefs.getInt(Keys.DEFAULT_CHAPTER_FILTER_BY_DOWNLOADED, Manga.SHOW_ALL)
 
-    fun filterChapterByBookmarked() = flowPrefs.getInt(Keys.defaultChapterFilterByBookmarked, Manga.SHOW_ALL)
+    fun filterChapterByBookmarked() = flowPrefs.getInt(Keys.DEFAULT_CHAPTER_FILTER_BY_BOOKMARKED, Manga.SHOW_ALL)
 
-    fun sortChapterOrder() = flowPrefs.getInt(Keys.defaultChapterSortBySourceOrNumber, Manga.CHAPTER_SORTING_SOURCE)
+    fun sortChapterOrder() = flowPrefs.getInt(Keys.DEFAULT_CHAPTER_SORT_BY_SOURCE_OR_NUMBER, Manga.CHAPTER_SORTING_SOURCE)
 
-    fun hideChapterTitlesByDefault() = flowPrefs.getBoolean(Keys.hideChapterTitles, false)
+    fun hideChapterTitlesByDefault() = flowPrefs.getBoolean(Keys.HIDE_CHAPTER_TITLES, false)
 
-    fun chaptersDescAsDefault() = flowPrefs.getBoolean(Keys.chaptersDescAsDefault, true)
+    fun chaptersDescAsDefault() = flowPrefs.getBoolean(Keys.CHAPTERS_DESC_AS_DEFAULT, true)
 
-    fun sortChapterByAscendingOrDescending() = prefs.getInt(Keys.defaultChapterSortByAscendingOrDescending, Manga.CHAPTER_SORT_DESC)
+    fun sortChapterByAscendingOrDescending() = prefs.getInt(Keys.DEFAULT_CHAPTER_SORT_BY_ASCENDING_OR_DESCENDING, Manga.CHAPTER_SORT_DESC)
 
-    fun coverRatios() = flowPrefs.getStringSet(Keys.coverRatios, emptySet())
+    fun coverRatios() = flowPrefs.getStringSet(Keys.COVER_RATIOS, emptySet())
 
-    fun coverColors() = flowPrefs.getStringSet(Keys.coverColors, emptySet())
+    fun coverColors() = flowPrefs.getStringSet(Keys.COVER_COLORS, emptySet())
 
     fun useStaggeredGrid() = flowPrefs.getBoolean("use_staggered_grid", false)
 }

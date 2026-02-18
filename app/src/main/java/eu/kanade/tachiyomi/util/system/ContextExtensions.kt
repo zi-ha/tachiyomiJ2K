@@ -40,7 +40,6 @@ import androidx.work.WorkManager
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.extension.util.ExtensionLoader
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import timber.log.Timber
 import uy.kohesive.injekt.Injekt
@@ -226,22 +225,7 @@ fun Context.withOriginalWidth(): Context {
     return this
 }
 
-fun Context.extensionIntentForText(text: String): Intent? {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(text))
-    val info =
-        packageManager
-            .queryIntentActivitiesCompat(intent, PackageManager.MATCH_ALL)
-            .firstOrNull {
-                try {
-                    val pkgName = it.activityInfo.packageName
-                    ExtensionLoader.isPackageNameAnExtension(packageManager, pkgName)
-                } catch (_: Exception) {
-                    false
-                }
-            } ?: return null
-    intent.setClassName(info.activityInfo.packageName, info.activityInfo.name)
-    return intent
-}
+fun Context.extensionIntentForText(text: String): Intent? = null
 
 fun Context.isLandscape(): Boolean = resources.configuration?.orientation == Configuration.ORIENTATION_LANDSCAPE
 

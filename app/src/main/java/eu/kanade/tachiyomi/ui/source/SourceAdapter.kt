@@ -22,14 +22,12 @@ class SourceAdapter(
 
     val enabledLanguages = Injekt.get<PreferencesHelper>().enabledLanguages().get()
 
-    val extensionManager = controller.presenter.extensionManager
-
     override fun onItemSwiped(
         position: Int,
         direction: Int,
     ) {
         super.onItemSwiped(position, direction)
-        controller.hideCatalogue(position)
+        // controller.hideCatalogue(position)
     }
 
     interface SourceListener {

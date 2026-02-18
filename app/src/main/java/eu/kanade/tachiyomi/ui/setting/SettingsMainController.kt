@@ -57,24 +57,6 @@ class SettingsMainController :
                 onClick { navigateTo(SettingsReaderController()) }
             }
             preference {
-                iconRes = R.drawable.ic_file_download_24dp
-                iconTint = tintColor
-                titleRes = R.string.downloads
-                onClick { navigateTo(SettingsDownloadController()) }
-            }
-            preference {
-                iconRes = R.drawable.ic_browse_outline_24dp
-                iconTint = tintColor
-                titleRes = R.string.browse
-                onClick { navigateTo(SettingsBrowseController()) }
-            }
-            preference {
-                iconRes = R.drawable.ic_sync_24dp
-                iconTint = tintColor
-                titleRes = R.string.tracking
-                onClick { navigateTo(SettingsTrackingController()) }
-            }
-            preference {
                 iconRes = R.drawable.ic_backup_restore_24dp
                 iconTint = tintColor
                 titleRes = R.string.backup_and_restore

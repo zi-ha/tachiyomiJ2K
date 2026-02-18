@@ -161,14 +161,14 @@ class ChapterUtil {
 
         fun hasTensOfChapters(chapters: List<ChapterItem>): Boolean = chapters.size > 20
 
-        const val scanlatorSeparator = " & "
+        const val SCANLATOR_SEPARATOR = " & "
 
         fun getScanlators(scanlators: String?): List<String> {
             if (scanlators.isNullOrBlank()) return emptyList()
-            return scanlators.split(scanlatorSeparator).distinct()
+            return scanlators.split(SCANLATOR_SEPARATOR).distinct()
         }
 
-        fun getScanlatorString(scanlators: Set<String>): String = scanlators.toList().sorted().joinToString(scanlatorSeparator)
+        fun getScanlatorString(scanlators: Set<String>): String = scanlators.toList().sorted().joinToString(SCANLATOR_SEPARATOR)
 
         fun Chapter.preferredChapterName(
             context: Context,

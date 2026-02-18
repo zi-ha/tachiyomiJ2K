@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.chapter.ChapterRecognition
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import eu.kanade.tachiyomi.util.storage.EpubFile
 import eu.kanade.tachiyomi.util.system.ImageUtil
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
@@ -174,11 +173,6 @@ class LocalSource(
                         if (chapters.isNotEmpty()) {
                             val chapter = chapters.last()
                             val format = getFormat(chapter)
-                            if (format is Format.Epub) {
-                                EpubFile(format.file).use { epub ->
-                                    epub.fillMangaMetadata(manga)
-                                }
-                            }
 
                             // Copy the cover from the first chapter found.
                             if (thumbnail_url == null) {
@@ -284,11 +278,6 @@ class LocalSource(
                         date_upload = chapterFile.lastModified()
 
                         val format = getFormat(chapterFile)
-                        if (format is Format.Epub) {
-                            EpubFile(format.file).use { epub ->
-                                epub.fillChapterMetadata(this)
-                            }
-                        }
 
                         ChapterRecognition.parseChapterNumber(this, manga)
                     }
@@ -322,7 +311,6 @@ class LocalSource(
                 isDirectory -> Format.Directory(this)
                 extension.equals("zip", true) || extension.equals("cbz", true) -> Format.Zip(this)
                 extension.equals("rar", true) || extension.equals("cbr", true) -> Format.Rar(this)
-                extension.equals("epub", true) -> Format.Epub(this)
                 else -> throw Exception(context.getString(R.string.local_invalid_format))
             }
         }
@@ -364,17 +352,6 @@ class LocalSource(
                         entry?.let { updateCover(context, manga, archive.getInputStream(it)) }
                     }
                 }
-                is Format.Epub -> {
-                    EpubFile(format.file).use { epub ->
-                        val entry =
-                            epub
-                                .getImagesFromPages()
-                                .firstOrNull()
-                                ?.let { epub.getEntry(it) }
-
-                        entry?.let { updateCover(context, manga, epub.getInputStream(it)) }
-                    }
-                }
             }
         } catch (e: Throwable) {
             Timber.e(e, "Error updating cover for ${manga.title}")
@@ -406,11 +383,7 @@ class LocalSource(
         data class Rar(
             val file: File,
         ) : Format()
-
-        data class Epub(
-            val file: File,
-        ) : Format()
     }
 }
 
-private val SUPPORTED_ARCHIVE_TYPES = listOf("zip", "cbz", "rar", "cbr", "epub")
+private val SUPPORTED_ARCHIVE_TYPES = listOf("zip", "cbz", "rar", "cbr")

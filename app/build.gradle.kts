@@ -8,14 +8,11 @@ plugins {
     kotlin(Plugins.kapt)
     id(Plugins.kotlinParcelize)
     id(Plugins.kotlinSerialization)
-    id("com.google.android.gms.oss-licenses-plugin")
-    id(Plugins.googleServices) apply false
-    id("com.google.firebase.crashlytics")
     id("org.jetbrains.kotlin.plugin.compose") version AndroidVersions.kotlin // this version matches your Kotlin version
 }
 
 if (gradle.startParameter.taskRequests.toString().contains("Standard")) {
-    apply<com.google.gms.googleservices.GoogleServicesPlugin>()
+    // apply<com.google.gms.googleservices.GoogleServicesPlugin>()
 }
 
 fun runCommand(command: String): String {
@@ -100,11 +97,10 @@ android {
 
     productFlavors {
         create("standard") {
-            buildConfigField("Boolean", "INCLUDE_UPDATER", "true")
         }
         create("dev") {
-            androidResources.localeFilters.clear()
-            androidResources.localeFilters.add("en")
+            resourceConfigurations.clear()
+            resourceConfigurations.add("en")
         }
     }
 
@@ -173,11 +169,6 @@ dependencies {
 
     implementation("androidx.multidex:multidex:2.0.1")
 
-    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
-
     val lifecycleVersion = "2.8.7"
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
@@ -215,22 +206,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:${kotlinSerialization}")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:${kotlinSerialization}")
 
-    // JavaScript engine
-    implementation("app.cash.quickjs:quickjs-android:0.9.2")
-
     // Disk
     implementation("com.jakewharton:disklrucache:2.0.2")
     implementation("com.github.tachiyomiorg:unifile:17bec43")
     implementation("com.github.junrar:junrar:7.5.5")
 
-    // HTML parser
-    implementation("org.jsoup:jsoup:1.19.1")
-
     // Job scheduling
     implementation("androidx.work:work-runtime-ktx:2.10.1")
     implementation("com.google.guava:guava:32.0.1-jre")
-
-    implementation("com.google.android.gms:play-services-gcm:17.0.0")
 
     // Database
     implementation("androidx.sqlite:sqlite-ktx:2.5.0")
@@ -279,11 +262,6 @@ dependencies {
     implementation("com.bluelinelabs:conductor:$conductorVersion")
     implementation("com.github.tachiyomiorg:conductor-support-preference:3.0.0")
 
-    // Shizuku
-    val shizukuVersion = "12.1.0"
-    implementation("dev.rikka.shizuku:api:$shizukuVersion")
-    implementation("dev.rikka.shizuku:provider:$shizukuVersion")
-
     implementation(kotlin("stdlib"))
 
     val coroutines = "1.10.2"
@@ -292,8 +270,6 @@ dependencies {
 
     // Text distance
     implementation("info.debatty:java-string-similarity:2.0.0")
-
-    implementation("com.google.android.gms:play-services-oss-licenses:17.1.0")
 
     // TLS 1.3 support for Android < 10
     implementation("org.conscrypt:conscrypt-android:2.5.3")

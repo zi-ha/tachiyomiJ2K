@@ -515,9 +515,7 @@ class PagerPageHolder(
                                 if (page.bg != null && page.bgType == bgType) {
                                     setImage(openStream, false, imageConfig)
                                     pageView?.background = page.bg
-                                }
-                                // if the user switches to automatic when pages are already cached, the bg needs to be loaded
-                                else {
+                                } else {
                                     val bytesArray = openStream.readBytes()
                                     val bytesStream = bytesArray.inputStream()
                                     setImage(bytesStream, false, imageConfig)

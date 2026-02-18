@@ -74,7 +74,7 @@ fun limitAndOffset(
         customLimit > 0 -> "LIMIT $customLimit\nOFFSET $offset"
         isResuming && endless && offset > 0 -> "LIMIT $offset"
         endless -> "LIMIT ${RecentsPresenter.ENDLESS_LIMIT}\nOFFSET $offset"
-        else -> "LIMIT ${RecentsPresenter.SHORT_LIMIT}"
+        else -> "LIMIT ${RecentsPresenter.shortLimit}"
     }
 
 /**

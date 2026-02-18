@@ -6,20 +6,12 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.core.content.IntentCompat
 import eu.kanade.tachiyomi.data.backup.BackupRestoreJob
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadJob
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
-import eu.kanade.tachiyomi.extension.ExtensionInstallerJob
-import eu.kanade.tachiyomi.extension.ExtensionManager
-import eu.kanade.tachiyomi.extension.model.Extension
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.more.AboutController
@@ -30,9 +22,7 @@ import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.notificationManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.io.File
-import java.util.ArrayList
 import eu.kanade.tachiyomi.BuildConfig.APPLICATION_ID as ID
 
 /**
@@ -41,11 +31,6 @@ import eu.kanade.tachiyomi.BuildConfig.APPLICATION_ID as ID
  * NOTE: Use local broadcasts if possible.
  */
 class NotificationReceiver : BroadcastReceiver() {
-    /**
-     * Download manager.
-     */
-    private val downloadManager: DownloadManager by injectLazy()
-
     override fun onReceive(
         context: Context,
         intent: Intent,
@@ -53,14 +38,6 @@ class NotificationReceiver : BroadcastReceiver() {
         when (intent.action) {
             // Dismiss notification
             ACTION_DISMISS_NOTIFICATION -> dismissNotification(context, intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
-            // Resume the download service
-            ACTION_RESUME_DOWNLOADS -> DownloadJob.start(context)
-            // Pause the download service
-            ACTION_PAUSE_DOWNLOADS -> {
-                downloadManager.pauseDownloads()
-            }
-            // Clear the download queue
-            ACTION_CLEAR_DOWNLOADS -> downloadManager.clearQueue(true)
             // Delete image from path and dismiss notification
             ACTION_DELETE_IMAGE ->
                 deleteImage(
@@ -70,10 +47,6 @@ class NotificationReceiver : BroadcastReceiver() {
                 )
             // Cancel library update and dismiss notification
             ACTION_CANCEL_LIBRARY_UPDATE -> cancelLibraryUpdate(context)
-            ACTION_CANCEL_EXTENSION_UPDATE -> cancelExtensionUpdate(context)
-            ACTION_START_EXTENSION_INSTALL -> startExtensionUpdater(context, intent)
-            ACTION_CANCEL_UPDATE_DOWNLOAD -> cancelDownloadUpdate(context)
-            ACTION_START_APP_UPDATE -> startAppUpdate(context, intent)
             ACTION_CANCEL_RESTORE -> cancelRestoreUpdate(context)
             // Share backup file
             ACTION_SHARE_BACKUP ->
@@ -201,29 +174,6 @@ class NotificationReceiver : BroadcastReceiver() {
     }
 
     /**
-     * Method called when user wants to stop a library update
-     *
-     * @param context context of application
-     */
-    private fun cancelExtensionUpdate(context: Context) {
-        dismissNotification(context, Notifications.ID_EXTENSION_PROGRESS)
-        ExtensionInstallerJob.stop(context)
-    }
-
-    private fun startExtensionUpdater(
-        context: Context,
-        intent: Intent,
-    ) {
-        val extensions =
-            IntentCompat.getParcelableArrayListExtra(
-                intent,
-                ExtensionInstallerJob.KEY_EXTENSION,
-                ExtensionManager.ExtensionInfo::class.java,
-            ) as? ArrayList<ExtensionManager.ExtensionInfo> ?: return
-        ExtensionInstallerJob.startJob(context, extensions, 1)
-    }
-
-    /**
      * Method called when user wants to mark as read
      *
      * @param context context of application
@@ -241,11 +191,6 @@ class NotificationReceiver : BroadcastReceiver() {
                 val chapter = db.getChapter(it, mangaId).executeAsBlocking() ?: return
                 chapter.read = true
                 db.updateChapterProgress(chapter).executeAsBlocking()
-                if (preferences.removeAfterMarkedAsRead()) {
-                    val sourceManager: SourceManager = Injekt.get()
-                    val source = sourceManager.get(manga.source) ?: return
-                    downloadManager.deleteChapters(listOf(chapter), manga, source)
-                }
                 return@map chapter
             }
         val newLastChapter = chapters.maxByOrNull { it.chapter_number.toInt() }
@@ -259,21 +204,6 @@ class NotificationReceiver : BroadcastReceiver() {
      */
     private fun cancelRestoreUpdate(context: Context) {
         BackupRestoreJob.stop(context)
-    }
-
-    private fun cancelDownloadUpdate(context: Context) {
-        AppDownloadInstallJob.stop(context)
-        dismissNotification(context, Notifications.ID_UPDATER)
-    }
-
-    private fun startAppUpdate(
-        context: Context,
-        intent: Intent,
-    ) {
-        val url = intent.getStringExtra(AppDownloadInstallJob.EXTRA_DOWNLOAD_URL) ?: return
-        val notifyOnInstall =
-            intent.getBooleanExtra(AppDownloadInstallJob.EXTRA_NOTIFY_ON_INSTALL, false)
-        AppDownloadInstallJob.start(context, url, notifyOnInstall)
     }
 
     companion object {
@@ -290,15 +220,6 @@ class NotificationReceiver : BroadcastReceiver() {
         // Called to cancel library update.
         private const val ACTION_CANCEL_LIBRARY_UPDATE = "$ID.$NAME.CANCEL_LIBRARY_UPDATE"
 
-        // Called to cancel extension update.
-        private const val ACTION_CANCEL_EXTENSION_UPDATE = "$ID.$NAME.CANCEL_EXTENSION_UPDATE"
-
-        private const val ACTION_START_EXTENSION_INSTALL = "$ID.$NAME.START_EXTENSION_INSTALL"
-
-        private const val ACTION_CANCEL_UPDATE_DOWNLOAD = "$ID.$NAME.CANCEL_UPDATE_DOWNLOAD"
-
-        private const val ACTION_START_APP_UPDATE = "$ID.$NAME.START_APP_UPDATE"
-
         // Called to mark as read
         private const val ACTION_MARK_AS_READ = "$ID.$NAME.MARK_AS_READ"
 
@@ -307,15 +228,6 @@ class NotificationReceiver : BroadcastReceiver() {
 
         // Value containing file location.
         private const val EXTRA_FILE_LOCATION = "$ID.$NAME.FILE_LOCATION"
-
-        // Called to resume downloads.
-        private const val ACTION_RESUME_DOWNLOADS = "$ID.$NAME.ACTION_RESUME_DOWNLOADS"
-
-        // Called to pause downloads.
-        private const val ACTION_PAUSE_DOWNLOADS = "$ID.$NAME.ACTION_PAUSE_DOWNLOADS"
-
-        // Called to clear downloads.
-        private const val ACTION_CLEAR_DOWNLOADS = "$ID.$NAME.ACTION_CLEAR_DOWNLOADS"
 
         // Called to dismiss notification.
         private const val ACTION_DISMISS_NOTIFICATION = "$ID.$NAME.ACTION_DISMISS_NOTIFICATION"
@@ -337,48 +249,6 @@ class NotificationReceiver : BroadcastReceiver() {
 
         // Value containing chapter url.
         private const val EXTRA_CHAPTER_URL = "$ID.$NAME.EXTRA_CHAPTER_URL"
-
-        /**
-         * Returns a [PendingIntent] that resumes the download of a chapter
-         *
-         * @param context context of application
-         * @return [PendingIntent]
-         */
-        internal fun resumeDownloadsPendingBroadcast(context: Context): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    action = ACTION_RESUME_DOWNLOADS
-                }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        }
-
-        /**
-         * Returns [PendingIntent] that pauses the download queue
-         *
-         * @param context context of application
-         * @return [PendingIntent]
-         */
-        internal fun pauseDownloadsPendingBroadcast(context: Context): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    action = ACTION_PAUSE_DOWNLOADS
-                }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        }
-
-        /**
-         * Returns a [PendingIntent] that clears the download queue
-         *
-         * @param context context of application
-         * @return [PendingIntent]
-         */
-        internal fun clearDownloadsPendingBroadcast(context: Context): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    action = ACTION_CLEAR_DOWNLOADS
-                }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        }
 
         /**
          * Returns [PendingIntent] that starts a service which dismissed the notification
@@ -631,71 +501,6 @@ class NotificationReceiver : BroadcastReceiver() {
             val intent =
                 Intent(context, NotificationReceiver::class.java).apply {
                     action = ACTION_CANCEL_LIBRARY_UPDATE
-                }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        }
-
-        /**
-         * Returns [PendingIntent] that starts a service which stops the library update
-         *
-         * @param context context of application
-         * @return [PendingIntent]
-         */
-        internal fun cancelExtensionUpdatePendingBroadcast(context: Context): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    action = ACTION_CANCEL_EXTENSION_UPDATE
-                }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        }
-
-        internal fun startExtensionUpdatePendingJob(
-            context: Context,
-            extensions: List<Extension.Available>,
-        ): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    val info = extensions.map(ExtensionManager::ExtensionInfo)
-                    action = ACTION_START_EXTENSION_INSTALL
-                    putParcelableArrayListExtra(ExtensionInstallerJob.KEY_EXTENSION, ArrayList(info))
-                }
-            return PendingIntent.getBroadcast(
-                context,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-        }
-
-        internal fun startAppUpdatePendingJob(
-            context: Context,
-            url: String,
-            notifyOnInstall: Boolean = false,
-        ): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    action = ACTION_START_APP_UPDATE
-                    putExtra(AppDownloadInstallJob.EXTRA_DOWNLOAD_URL, url)
-                    putExtra(AppDownloadInstallJob.EXTRA_NOTIFY_ON_INSTALL, notifyOnInstall)
-                }
-            return PendingIntent.getBroadcast(
-                context,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-        }
-
-        /**
-         * Returns [PendingIntent] that cancels the download for a Tachiyomi update
-         *
-         * @param context context of application
-         * @return [PendingIntent]
-         */
-        internal fun cancelUpdateDownloadPendingBroadcast(context: Context): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    action = ACTION_CANCEL_UPDATE_DOWNLOAD
                 }
             return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }

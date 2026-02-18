@@ -10,14 +10,11 @@ import androidx.preference.PreferenceManager
 import eu.kanade.tachiyomi.ui.setting.SettingsAdvancedController
 import eu.kanade.tachiyomi.ui.setting.SettingsAppearanceController
 import eu.kanade.tachiyomi.ui.setting.SettingsBackupController
-import eu.kanade.tachiyomi.ui.setting.SettingsBrowseController
 import eu.kanade.tachiyomi.ui.setting.SettingsController
-import eu.kanade.tachiyomi.ui.setting.SettingsDownloadController
 import eu.kanade.tachiyomi.ui.setting.SettingsGeneralController
 import eu.kanade.tachiyomi.ui.setting.SettingsLibraryController
 import eu.kanade.tachiyomi.ui.setting.SettingsReaderController
 import eu.kanade.tachiyomi.ui.setting.SettingsSecurityController
-import eu.kanade.tachiyomi.ui.setting.SettingsTrackingController
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.system.launchNow
 import kotlin.reflect.KClass
@@ -33,14 +30,11 @@ object SettingsSearchHelper {
         listOf(
             SettingsAdvancedController::class,
             SettingsBackupController::class,
-            SettingsBrowseController::class,
-            SettingsDownloadController::class,
             SettingsGeneralController::class,
             SettingsAppearanceController::class,
             SettingsSecurityController::class,
             SettingsLibraryController::class,
             SettingsReaderController::class,
-            SettingsTrackingController::class,
         )
 
     /**

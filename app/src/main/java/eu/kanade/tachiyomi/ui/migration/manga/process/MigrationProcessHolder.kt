@@ -156,7 +156,7 @@ class MigrationProcessHolder(
                 .Builder(view.context)
                 .data(manga)
                 .target(CoverViewTarget(coverThumbnail, progress))
-                .setParameter(MangaCoverFetcher.useCustomCover, false)
+                .setParameter(MangaCoverFetcher.USE_CUSTOM_COVER, false)
                 .build()
         Coil.imageLoader(view.context).enqueue(request)
 
