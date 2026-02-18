@@ -40,8 +40,6 @@ class AppModule(
 
         addSingletonFactory { CoverCache(app) }
 
-        addSingletonFactory { JavaScriptEngine(app) }
-
         addSingletonFactory { SourceManager(app) }
 
         addSingletonFactory { CustomMangaManager(app) }

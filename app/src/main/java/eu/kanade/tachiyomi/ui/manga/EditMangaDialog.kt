@@ -23,7 +23,6 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.image.coil.MangaCoverFetcher
 import eu.kanade.tachiyomi.data.image.coil.loadManga
 import eu.kanade.tachiyomi.databinding.EditMangaDialogBinding
-import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.icon
 import eu.kanade.tachiyomi.source.model.SManga
@@ -108,21 +107,9 @@ class EditMangaDialog : DialogController {
             binding.mangaArtist.append(manga.artist ?: "")
             binding.mangaDescription.append(manga.description ?: "")
             val preferences = infoController.presenter.preferences
-            val extensionManager: ExtensionManager by injectLazy()
             val activeLangs = preferences.enabledLanguages().get()
 
             languages.add("")
-            languages.addAll(
-                extensionManager.availableExtensionsFlow.value
-                    .groupBy { it.lang }
-                    .keys
-                    .sortedWith(
-                        compareBy(
-                            { it !in activeLangs },
-                            { LocaleHelper.getSourceDisplayName(it, binding.root.context) },
-                        ),
-                    ).filter { it != "all" && it != "other" },
-            )
             binding.mangaLang.setEntries(
                 languages.map {
                     LocaleHelper.getSourceDisplayName(it, binding.root.context)

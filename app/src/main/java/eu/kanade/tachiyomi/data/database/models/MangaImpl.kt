@@ -2,8 +2,6 @@
 
 package eu.kanade.tachiyomi.data.database.models
 
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.data.library.CustomMangaManager
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
@@ -107,9 +105,6 @@ open class MangaImpl : Manga {
         ) {
             val oldTitle = ogTitle
             title = other.ogTitle
-            val db: DownloadManager by injectLazy()
-            val provider = DownloadProvider(db.context)
-            provider.renameMangaFolder(oldTitle, ogTitle, source)
         }
         super.copyFrom(other)
     }

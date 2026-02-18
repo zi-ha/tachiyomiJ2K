@@ -63,7 +63,6 @@ class LibraryPresenter(
     private val preferences: PreferencesHelper = Injekt.get(),
     private val coverCache: CoverCache = Injekt.get(),
     val sourceManager: SourceManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
     private val chapterFilter: ChapterFilter = Injekt.get(),
     private val trackManager: TrackManager = Injekt.get(),
 ) : BaseCoroutinePresenter<LibraryController>() {
@@ -398,7 +397,7 @@ class LibraryPresenter(
                 when {
                     item.manga.isLocal() -> true
                     item.downloadCount != -1 -> item.downloadCount > 0
-                    else -> downloadManager.getDownloadCount(item.manga) > 0
+                    else -> false
                 }
             return if (filterDownloaded == STATE_INCLUDE) isDownloaded else !isDownloaded
         }
@@ -1084,10 +1083,6 @@ class LibraryPresenter(
             mangaToDelete.forEach { manga ->
                 if (coverCacheToo) {
                     coverCache.deleteFromCache(manga)
-                }
-                val source = sourceManager.get(manga.source) as? HttpSource
-                if (source != null) {
-                    downloadManager.deleteManga(manga, source)
                 }
             }
             if (!coverCacheToo) {

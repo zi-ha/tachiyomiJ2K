@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.migration.manga.design
 import android.os.Bundle
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -17,7 +16,6 @@ class MigrationSourceAdapter(
         controllerPre,
         true,
     ) {
-    val extensionManager: ExtensionManager = Injekt.get()
     val enabledLanguages = Injekt.get<PreferencesHelper>().enabledLanguages().get()
 
     override fun onSaveInstanceState(outState: Bundle) {

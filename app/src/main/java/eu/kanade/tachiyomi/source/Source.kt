@@ -57,20 +57,13 @@ interface Source {
 
     fun includeLangInName(
         enabledLanguages: Set<String>,
-        extensionManager: ExtensionManager? = null,
     ): Boolean {
-        val httpSource = this as? HttpSource ?: return true
-        val extManager = extensionManager ?: Injekt.get()
-        val allExt = httpSource.getExtension(extManager)?.lang == "all"
-        val onlyAll = httpSource.extOnlyHasAllLanguage(extManager)
-        val isMultiLingual = enabledLanguages.filterNot { it == "all" }.size > 1
-        return (isMultiLingual && allExt) || (lang == "all" && !onlyAll)
+        return true
     }
 
     fun nameBasedOnEnabledLanguages(
         enabledLanguages: Set<String>,
-        extensionManager: ExtensionManager? = null,
-    ): String = if (includeLangInName(enabledLanguages, extensionManager)) toString() else name
+    ): String = if (includeLangInName(enabledLanguages)) toString() else name
 
     @Deprecated(
         "Use the non-RxJava API instead",
@@ -91,8 +84,8 @@ interface Source {
     fun fetchPageList(chapter: SChapter): Observable<List<Page>> = throw IllegalStateException("Not used")
 }
 
-fun Source.icon(): Drawable? = null // Injekt.get<ExtensionManager>().getAppIconForSource(this)
+fun Source.icon(): Drawable? = null 
 
-fun Source.pkgName() = "" // Injekt.get<ExtensionManager>().getPackageName(id)
+fun Source.pkgName() = "" 
 
 fun Source.preferenceKey(): String = "source_$id"

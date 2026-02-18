@@ -67,7 +67,7 @@ class MigrationSourceItem(
             sourceManager: SourceManager,
             si: ParcelableSI,
         ): MigrationSourceItem? {
-            val source = sourceManager.get(si.sourceId) as? HttpSource ?: return null
+            val source = sourceManager.get(si.sourceId) as? CatalogueSource ?: return null
 
             return MigrationSourceItem(
                 source,

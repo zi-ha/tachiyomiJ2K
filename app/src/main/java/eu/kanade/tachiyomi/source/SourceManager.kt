@@ -5,14 +5,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.source.online.HttpSource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
-import java.util.concurrent.ConcurrentHashMap
 
 class SourceManager(
     private val context: Context,
@@ -22,13 +14,10 @@ class SourceManager(
     private val sourcesMapFlow = MutableStateFlow(ConcurrentHashMap<Long, Source>(mapOf(LocalSource.ID to LocalSource(context))))
 
     val catalogueSources: Flow<List<CatalogueSource>> = sourcesMapFlow.map { it.values.filterIsInstance<CatalogueSource>() }
-    val onlineSources: Flow<List<HttpSource>> = catalogueSources.map { emptyList() }
 
     fun get(sourceKey: Long): Source? = sourcesMapFlow.value[sourceKey]
 
     fun getOrStub(sourceKey: Long): Source = sourcesMapFlow.value[sourceKey] ?: StubSource(sourceKey)
-
-    fun getOnlineSources() = emptyList<HttpSource>()
 
     fun getCatalogueSources() = sourcesMapFlow.value.values.filterIsInstance<CatalogueSource>()
 

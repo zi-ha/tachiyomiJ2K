@@ -18,10 +18,10 @@ class MigrationSourceHolder(
     }
 
     fun bind(
-        source: HttpSource,
+        source: CatalogueSource,
         sourceEnabled: Boolean,
     ) {
-        binding.title.text = source.nameBasedOnEnabledLanguages(adapter.enabledLanguages, adapter.extensionManager)
+        binding.title.text = source.nameBasedOnEnabledLanguages(adapter.enabledLanguages)
         // Update circle letter image.
         itemView.post {
             val icon = source.icon()

@@ -5,7 +5,6 @@ import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.LibraryManga
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.Track
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.MANGA_HAS_UNREAD
 import eu.kanade.tachiyomi.data.preference.MANGA_NON_COMPLETED
 import eu.kanade.tachiyomi.data.preference.MANGA_NON_READ
@@ -63,7 +62,7 @@ class StatsPresenter(
             }
     }
 
-    fun getDownloadCount(manga: LibraryManga): Int = downloadManager.getDownloadCount(manga)
+    fun getDownloadCount(manga: LibraryManga): Int = 0
 
     fun get10PointScore(track: Track): Float? {
         val service = trackManager.getService(track.sync_id)

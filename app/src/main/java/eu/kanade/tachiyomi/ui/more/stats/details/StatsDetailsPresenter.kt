@@ -13,7 +13,6 @@ import eu.kanade.tachiyomi.data.database.models.MangaChapterHistory
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackManager
-import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
@@ -294,7 +293,7 @@ class StatsDetailsPresenter(
                     meanScore = mangaList.getMeanScoreRounded(),
                     chaptersRead = mangaList.sumOf { it.read },
                     totalChapters = mangaList.sumOf { it.totalChapters },
-                    label = source.nameBasedOnEnabledLanguages(enabledLanguages, extensionManager),
+                    label = source.nameBasedOnEnabledLanguages(enabledLanguages),
                     icon = source.icon(),
                     readDuration = mangaList.getReadDuration(),
                     id = sourceId,
