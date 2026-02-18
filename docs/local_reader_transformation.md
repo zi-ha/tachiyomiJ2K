@@ -6,7 +6,7 @@
 - 移除：扩展生态与在线源、扩展安装/更新、在线章节更新与下载队列、与扩展/在线源相关的前后台 Job；浏览/扩展相关 UI 与入口；与扩展安装/广泛包查询等权限。
 
 总体策略
-- 路线B（主分支直接改造）：从代码与构建系统层面移除在线能力与扩展生态，精简 Manifest 与依赖；仅保留追番同步所需的网络栈与授权能力。删除相关源代码与资源，避免条件编译与多风味分叉，降低维护复杂度。在处理时尽量加快效率。
+- 路线B（主分支直接改造）：从代码与构建系统层面移除在线能力与扩展生态，精简 Manifest 与依赖；仅保留追番同步所需的网络栈与授权能力。删除相关源代码与资源，避免条件编译与多风味分叉，降低维护复杂度。在处理时可适当加快效率。
 
 
 阶段性步骤
@@ -22,21 +22,21 @@
 - 编译常量与开关：
   - 固定或移除 INCLUDE_UPDATER，并删除更新模块引用与相关代码路径。
 
-2) 依赖注入与源管理精简
+2) 依赖注入与源管理精简 [已完成]
 - Injekt 注册收敛：[AppModule.kt](file:///d:/Desktop/tachiyomiJ2K/app/src/main/java/eu/kanade/tachiyomi/AppModule.kt)
   - 保留：DatabaseHelper、ChapterCache、CoverCache、PreferencesHelper、MangaShortcutManager、Json、NetworkHelper、TrackManager。
   - 移除：JavaScriptEngine、ExtensionManager、DownloadManager（网络下载）等与在线相关的单例注册与工厂。
 - 源管理器仅暴露 LocalSource 并删除在线路径：
   - 在 [SourceManager.kt](file:///d:/Desktop/tachiyomiJ2K/app/src/main/java/eu/kanade/tachiyomi/source/SourceManager.kt) 初始化时仅注册 LocalSource，删除 extensionsFlow 相关逻辑、delegatedSources、getOnlineSources 等 API；移除对 HttpSource/DelegatedHttpSource 的依赖。
 
-3) 本地图源能力保留与增强
+3) 本地图源能力保留与增强 [已完成]
 - 关键文件：[LocalSource.kt](file:///d:/Desktop/tachiyomiJ2K/app/src/main/java/eu/kanade/tachiyomi/source/LocalSource.kt)
 - 路径兼容：沿用 “<AppName>/local” 与 “Tachiyomi/local” 兼容目录，首次启动引导选择目录并建立。
 - 支持格式：zip/cbz、rar/cbr、epub、章节文件夹；解析 info.json/ComicInfo.xml 元数据（完善字段优先级）。
 - 扫描策略：提供全量扫描 + 基于 mtime 的增量扫描；UI 提供“手动刷新”入口与“启动时索引更新”选项。
 - 下载管理器：禁用网络下载；若保留预读，仅针对本地文件顺序读取并缓存。
 
-4) UI 导航与页面调整
+4) UI 导航与页面调整 [已完成]
 - 移除“浏览/扩展”入口：
   - 删除菜单项 nav_browse：[bottom_navigation.xml](file:///d:/Desktop/tachiyomiJ2K/app/src/main/res/menu/bottom_navigation.xml)、[side_navigation.xml](file:///d:/Desktop/tachiyomiJ2K/app/src/main/res/menu/side_navigation.xml)。
   - 在 [MainActivity.kt](file:///d:/Desktop/tachiyomiJ2K/app/src/main/java/eu/kanade/tachiyomi/ui/main/MainActivity.kt) 内删除所有指向 BrowseController/BrowseSourceController/RepoController 的分支与入口。

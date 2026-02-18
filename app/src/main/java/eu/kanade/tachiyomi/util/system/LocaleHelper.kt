@@ -19,8 +19,6 @@ object LocaleHelper {
     ): String =
         when (lang) {
             "", "other" -> context.getString(R.string.other)
-            SourcePresenter.LAST_USED_KEY -> context.getString(R.string.last_used)
-            SourcePresenter.PINNED_KEY -> context.getString(R.string.pinned)
             "all" -> context.getString(R.string.all)
             else -> getDisplayName(lang)
         }

@@ -89,7 +89,6 @@ import eu.kanade.tachiyomi.ui.recents.RecentsViewType
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 import eu.kanade.tachiyomi.ui.setting.SettingsMainController
-import eu.kanade.tachiyomi.ui.source.BrowseController
 import eu.kanade.tachiyomi.util.manga.MangaCoverMetadata
 import eu.kanade.tachiyomi.util.manga.MangaShortcutManager
 import eu.kanade.tachiyomi.util.system.contextCompatDrawable
@@ -378,7 +377,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             }
             true
         }
-        for (id in listOf(R.id.nav_recents, R.id.nav_browse)) {
+        for (id in listOf(R.id.nav_recents)) {
             nav.getItemView(id)?.setOnLongClickListener {
                 nav.selectedItemId = id
                 nav.post {
@@ -459,7 +458,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             nav.selectedItemId =
                 when (router.backstack.firstOrNull()?.controller) {
                     is RecentsController -> R.id.nav_recents
-                    is BrowseController -> R.id.nav_browse
                     else -> R.id.nav_library
                 }
         }
@@ -515,8 +513,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 setRoot(
                     when (id) {
                         R.id.nav_library -> LibraryController()
-                        R.id.nav_recents -> RecentsController()
-                        else -> BrowseController()
+                        else -> RecentsController()
                     },
                     id,
                 )
@@ -704,13 +701,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 }
             }
         }
-        getExtensionUpdates(true)
-
-        preferences
-            .extensionUpdatesCount()
-            .asImmediateFlowIn(lifecycleScope) {
-                setExtensionsBadge()
-            }
         preferences
             .incognitoMode()
             .asImmediateFlowIn(lifecycleScope) {
@@ -944,16 +934,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             }
     }
 
-    private fun setExtensionsBadge() {
-        val updates = preferences.extensionUpdatesCount().get()
-        if (updates > 0) {
-            val badge = nav.getOrCreateBadge(R.id.nav_browse)
-            badge.number = updates
-        } else {
-            nav.removeBadge(R.id.nav_browse)
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         reEnableBackPressedCallBack()
@@ -1021,19 +1001,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                     )
                 }
             }
-            SHORTCUT_BROWSE -> nav.selectedItemId = R.id.nav_browse
-            SHORTCUT_EXTENSIONS -> {
-                if (nav.selectedItemId != R.id.nav_browse) {
-                    nav.selectedItemId = R.id.nav_browse
-                } else {
-                    router.popToRoot()
-                }
-                nav.post {
-                    val controller =
-                        router.backstack.firstOrNull()?.controller as? BrowseController
-                    controller?.showSheet()
-                }
-            }
             SHORTCUT_MANGA -> {
                 val extras = intent.extras ?: return false
                 if (router.backstack.isEmpty()) nav.selectedItemId = R.id.nav_library
@@ -1046,11 +1013,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                     AboutController.NewUpdateDialogController(extras).showDialog(router)
                 }
             }
-            SHORTCUT_SOURCE -> {
-                val extras = intent.extras ?: return false
-                if (router.backstack.isEmpty()) nav.selectedItemId = R.id.nav_library
-                router.pushController(BrowseSourceController(extras).withFadeTransaction())
-            }
             SHORTCUT_DOWNLOADS -> {
                 nav.selectedItemId = R.id.nav_recents
                 router.popToRoot()
@@ -1060,15 +1022,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                     controller?.showSheet()
                 }
             }
-            Intent.ACTION_VIEW -> {
-                // Deep link to add extension repo
-                if (intent.scheme == "tachiyomi" && intent.data?.host == "add-repo") {
-                    intent.data?.getQueryParameter("url")?.let { repoUrl ->
-                        router.popToRoot()
-                        router.pushController(RepoController(repoUrl).withFadeTransaction())
-                    }
-                }
-            }
             else -> return false
         }
         return true
@@ -1076,22 +1029,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
 
     override fun onProvideAssistContent(outContent: AssistContent) {
         super.onProvideAssistContent(outContent)
-        when (val controller = router.backstack.lastOrNull()?.controller) {
-            is MangaDetailsController -> {
-                val source = controller.presenter.source as? HttpSource ?: return
-                val url =
-                    try {
-                        source.getMangaUrl(controller.presenter.manga)
-                    } catch (e: Exception) {
-                        return
-                    }
-                outContent.webUri = url.toUri()
-            }
-            is BrowseSourceController -> {
-                val source = controller.presenter.source as? HttpSource ?: return
-                outContent.webUri = source.baseUrl.toUri()
-            }
-        }
     }
 
     override fun onDestroy() {
@@ -1149,8 +1086,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
 
     private fun setStartingTab() {
         if (this is SearchActivity || !isBindingInitialized) return
-        if (nav.selectedItemId != R.id.nav_browse &&
-            preferences.startingTab().get() >= 0
+        if (preferences.startingTab().get() >= 0
         ) {
             preferences.startingTab().set(
                 when (nav.selectedItemId) {
@@ -1166,7 +1102,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         when (preferences.startingTab().get()) {
             0, -1 -> R.id.nav_library
             1, -2 -> R.id.nav_recents
-            -3 -> R.id.nav_browse
             else -> R.id.nav_library
         }
 
@@ -1590,14 +1525,11 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         const val SHORTCUT_RECENTS = "eu.kanade.tachiyomi.SHOW_RECENTS"
         const val SHORTCUT_RECENTLY_UPDATED = "eu.kanade.tachiyomi.SHOW_RECENTLY_UPDATED"
         const val SHORTCUT_RECENTLY_READ = "eu.kanade.tachiyomi.SHOW_RECENTLY_READ"
-        const val SHORTCUT_BROWSE = "eu.kanade.tachiyomi.SHOW_BROWSE"
         const val SHORTCUT_DOWNLOADS = "eu.kanade.tachiyomi.SHOW_DOWNLOADS"
         const val SHORTCUT_MANGA = "eu.kanade.tachiyomi.SHOW_MANGA"
         const val SHORTCUT_MANGA_BACK = "eu.kanade.tachiyomi.SHOW_MANGA_BACK"
         const val SHORTCUT_UPDATE_NOTES = "eu.kanade.tachiyomi.SHOW_UPDATE_NOTES"
-        const val SHORTCUT_SOURCE = "eu.kanade.tachiyomi.SHOW_SOURCE"
         const val SHORTCUT_READER_SETTINGS = "eu.kanade.tachiyomi.READER_SETTINGS"
-        const val SHORTCUT_EXTENSIONS = "eu.kanade.tachiyomi.EXTENSIONS"
 
         const val INTENT_SEARCH = "eu.kanade.tachiyomi.SEARCH"
         const val INTENT_SEARCH_QUERY = "query"

@@ -28,7 +28,6 @@ import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.ui.library.LibraryPresenter
 import eu.kanade.tachiyomi.ui.recents.RecentsPresenter
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
-import eu.kanade.tachiyomi.ui.source.SourcePresenter
 import eu.kanade.tachiyomi.util.manga.MangaCoverMetadata
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil
 import eu.kanade.tachiyomi.util.system.launchIO
@@ -137,7 +136,6 @@ open class App :
         super.onLowMemory()
         LibraryPresenter.onLowMemory()
         RecentsPresenter.onLowMemory()
-        SourcePresenter.onLowMemory()
     }
 
     protected open fun setupNotificationChannels() {

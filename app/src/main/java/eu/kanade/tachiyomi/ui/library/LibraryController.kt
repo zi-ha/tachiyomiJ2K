@@ -1697,7 +1697,6 @@ open class LibraryController(
     }
 
     override fun globalSearch(query: String) {
-        router.pushController(GlobalSearchController(query).withFadeTransaction())
     }
 
     override fun onActionStateChanged(

@@ -15,7 +15,6 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.MigrationControllerBinding
 import eu.kanade.tachiyomi.ui.base.controller.BaseCoroutineController
 import eu.kanade.tachiyomi.ui.migration.manga.design.PreMigrationController
-import eu.kanade.tachiyomi.ui.source.BrowseController
 import eu.kanade.tachiyomi.util.system.launchUI
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.view.activityBinding
@@ -138,7 +137,7 @@ class MigrationController :
         }
         when (item.itemId) {
             R.id.action_migration_guide -> {
-                activity?.openInBrowser(BrowseController.HELP_URL)
+                activity?.openInBrowser("https://tachiyomi.org/help/guides/migration/")
             }
         }
         return super.onOptionsItemSelected(item)

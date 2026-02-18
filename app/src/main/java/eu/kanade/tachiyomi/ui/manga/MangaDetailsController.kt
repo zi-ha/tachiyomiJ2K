@@ -74,7 +74,6 @@ import eu.kanade.tachiyomi.ui.manga.chapter.ChaptersSortBottomSheet
 import eu.kanade.tachiyomi.ui.manga.track.TrackItem
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
-import eu.kanade.tachiyomi.ui.source.BrowseController
 import eu.kanade.tachiyomi.util.addOrRemoveToFavorites
 import eu.kanade.tachiyomi.util.chapter.updateTrackChapterMarkedAsRead
 import eu.kanade.tachiyomi.util.isLocal
@@ -1543,7 +1542,6 @@ class MangaDetailsController :
 
     companion object {
         const val UPDATE_EXTRA = "update"
-        const val SMART_SEARCH_CONFIG_EXTRA = "smartSearchConfig"
 
         const val FROM_CATALOGUE_EXTRA = "from_catalogue"
         const val MANGA_EXTRA = "manga"

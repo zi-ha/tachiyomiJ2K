@@ -31,7 +31,6 @@ import eu.kanade.tachiyomi.ui.base.controller.BaseController
 import eu.kanade.tachiyomi.ui.base.controller.FadeChangeHandler
 import eu.kanade.tachiyomi.ui.main.BottomNavBarInterface
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
-import eu.kanade.tachiyomi.ui.migration.SearchController
 import eu.kanade.tachiyomi.ui.migration.manga.design.PreMigrationController
 import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
 import eu.kanade.tachiyomi.util.lang.toNormalized
@@ -343,27 +342,6 @@ class MigrationListController(
         item: MenuItem,
     ) {
         when (item.itemId) {
-            R.id.action_search_manually -> {
-                launchUI {
-                    val manga = adapter?.getItem(position)?.manga?.manga() ?: return@launchUI
-                    selectedPosition = position
-                    val sources =
-                        preferences.migrationSources().get().split("/").mapNotNull {
-                            val value = it.toLongOrNull() ?: return@mapNotNull null
-                            sourceManager.get(value) as? CatalogueSource
-                        }
-                    val validSources =
-                        if (sources.size == 1) {
-                            sources
-                        } else {
-                            sources.filter { it.id != manga.source }
-                        }
-                    manga.title = manga.title.toNormalized()
-                    val searchController = SearchController(manga, validSources)
-                    searchController.targetController = this@MigrationListController
-                    router.pushController(searchController.withFadeTransaction())
-                }
-            }
             R.id.action_skip -> adapter?.removeManga(position)
             R.id.action_migrate_now -> {
                 adapter?.migrateManga(position, false)
