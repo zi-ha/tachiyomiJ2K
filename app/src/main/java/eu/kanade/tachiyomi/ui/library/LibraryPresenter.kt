@@ -14,7 +14,6 @@ import eu.kanade.tachiyomi.data.preference.DelayedLibrarySuggestionsJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.minusAssign
 import eu.kanade.tachiyomi.data.preference.plusAssign
-import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SManga
@@ -64,18 +63,14 @@ class LibraryPresenter(
     private val coverCache: CoverCache = Injekt.get(),
     val sourceManager: SourceManager = Injekt.get(),
     private val chapterFilter: ChapterFilter = Injekt.get(),
-    private val trackManager: TrackManager = Injekt.get(),
 ) : BaseCoroutinePresenter<LibraryController>() {
     private val context = preferences.context
     private val viewContext
         get() = view?.view?.context
 
-    private val loggedServices by lazy { trackManager.services.filter { it.isLogged } }
-
     var groupType = preferences.groupLibraryBy().get()
 
-    val isLoggedIntoTracking
-        get() = loggedServices.isNotEmpty()
+    val isLoggedIntoTracking = false
 
     /** Current categories of the library. */
     var categories: List<Category> = emptyList()
@@ -839,23 +834,8 @@ class LibraryPresenter(
                             }
                         }
                         BY_TRACK_STATUS -> {
-                            val tracks = db.getTracks(manga).executeAsBlocking()
-                            val track =
-                                tracks.find { track ->
-                                    loggedServices.any { it.id == track?.sync_id }
-                                }
-                            val service = loggedServices.find { it.id == track?.sync_id }
-                            val status: String =
-                                if (track != null && service != null) {
-                                    if (loggedServices.size > 1) {
-                                        service.getGlobalStatus(track.status)
-                                    } else {
-                                        service.getStatus(track.status)
-                                    }
-                                } else {
-                                    view?.view?.context?.getString(R.string.not_tracked) ?: ""
-                                }
-                            listOf(LibraryItem(manga, makeOrGetHeader(status), viewContext))
+                            // Tracking removed
+                            listOf(LibraryItem(manga, makeOrGetHeader(context.getString(R.string.not_tracked)), viewContext))
                         }
                         BY_SOURCE -> {
                             val source = sourceManager.getOrStub(manga.source)

@@ -114,7 +114,6 @@ import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.launchNonCancellable
 import eu.kanade.tachiyomi.util.system.launchUI
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
-import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.system.spToPx
 import eu.kanade.tachiyomi.util.system.toast
@@ -129,7 +128,6 @@ import eu.kanade.tachiyomi.util.view.popupMenu
 import eu.kanade.tachiyomi.util.view.snack
 import eu.kanade.tachiyomi.widget.doOnEnd
 import eu.kanade.tachiyomi.widget.doOnStart
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -141,7 +139,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.text.DecimalFormat
@@ -1474,8 +1471,6 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         }
         lastShiftDoubleState = null
         viewer?.setChapters(viewerChapters)
-        intentPageNumber?.let { moveToPageIndex(it) }
-        intentPageNumber = null
         val chapter = viewerChapters.currChapter.chapter
         binding.toolbar.subtitle =
             chapter.preferredChapterName(this, viewModel.manga!!, preferences)
@@ -1955,26 +1950,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         }
     }
 
-    private fun handleIntentAction(intent: Intent): Boolean {
-        val uri = intent.data ?: return false
-        if (!viewModel.canLoadUrl(uri)) {
-            openInBrowser(intent.data!!.toString(), true)
-            finishAfterTransition()
-            return true
-        }
-        setMenuVisibility(visible = false, animate = true)
-        scope.launch(Dispatchers.IO) {
-            try {
-                intentPageNumber = viewModel.intentPageNumber(uri)
-                viewModel.loadChapterURL(uri)
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    setInitialChapterError(e)
-                }
-            }
-        }
-        return true
-    }
+    private fun handleIntentAction(intent: Intent): Boolean = false
 
     private fun openMangaInBrowser() {
         // Removed

@@ -55,15 +55,9 @@ interface Source {
     @Suppress("DEPRECATION")
     suspend fun getPageList(chapter: SChapter): List<Page> = fetchPageList(chapter).awaitSingle()
 
-    fun includeLangInName(
-        enabledLanguages: Set<String>,
-    ): Boolean {
-        return true
-    }
+    fun includeLangInName(enabledLanguages: Set<String>): Boolean = true
 
-    fun nameBasedOnEnabledLanguages(
-        enabledLanguages: Set<String>,
-    ): String = if (includeLangInName(enabledLanguages)) toString() else name
+    fun nameBasedOnEnabledLanguages(enabledLanguages: Set<String>): String = if (includeLangInName(enabledLanguages)) toString() else name
 
     @Deprecated(
         "Use the non-RxJava API instead",
@@ -84,8 +78,8 @@ interface Source {
     fun fetchPageList(chapter: SChapter): Observable<List<Page>> = throw IllegalStateException("Not used")
 }
 
-fun Source.icon(): Drawable? = null 
+fun Source.icon(): Drawable? = null
 
-fun Source.pkgName() = "" 
+fun Source.pkgName() = ""
 
 fun Source.preferenceKey(): String = "source_$id"

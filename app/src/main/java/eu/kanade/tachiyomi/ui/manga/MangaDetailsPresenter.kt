@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.History
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.library.CustomMangaManager
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.Source
@@ -90,11 +89,6 @@ class MangaDetailsPresenter(
             controller.shouldLockIfNeeded &&
             SecureActivityDelegate.shouldBeLocked()
         headerItem.isLocked = isLockedFromSearch
-
-        LibraryUpdateJob.updateFlow
-            .filter { it == manga.id }
-            .onEach(::onUpdateManga)
-            .launchIn(presenterScope)
 
         if (manga.isLocal()) {
             refreshAll()

@@ -16,7 +16,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.databinding.FilterBottomSheetBinding
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.ui.library.LibraryController
@@ -41,7 +40,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import kotlin.math.max
@@ -61,10 +59,8 @@ class FilterBottomSheet
 
         private lateinit var binding: FilterBottomSheetBinding
 
-        private val trackManager: TrackManager by injectLazy()
-
         private val hasTracking
-            get() = trackManager.hasLoggedServices()
+            get() = false
 
         private lateinit var downloaded: FilterTagGroup
 
@@ -419,27 +415,7 @@ class FilterBottomSheet
                 }
 
                 if (filterItems.contains(tracked)) {
-                    val loggedServices = Injekt.get<TrackManager>().services.filter { it.isLogged }
-                    if (loggedServices.size > 1) {
-                        val serviceNames = loggedServices.map { context.getString(it.nameRes()) }
-                        withUIContext {
-                            trackers = inflate(R.layout.filter_tag_group) as FilterTagGroup
-                            trackers?.setup(
-                                this@FilterBottomSheet,
-                                serviceNames.first(),
-                                serviceNames.getOrNull(1),
-                                serviceNames.getOrNull(2),
-                                serviceNames.getOrNull(3),
-                                serviceNames.getOrNull(4),
-                            )
-                            if (tracked?.isActivated == true) {
-                                binding.filterLayout.addView(trackers)
-                                filterItems.add(trackers!!)
-                                trackers?.setState(filterTracker)
-                                reSortViews()
-                            }
-                        }
-                    }
+                    // Tracking removed
                 }
             }
         }

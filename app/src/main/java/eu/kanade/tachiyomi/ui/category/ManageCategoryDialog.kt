@@ -11,7 +11,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Category
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.MangaCategoryDialogBinding
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
@@ -120,7 +119,6 @@ class ManageCategoryDialog(
             ) == false
         ) {
             preferences.libraryUpdateInterval().set(0)
-            LibraryUpdateJob.setupTask(preferences.context, 0)
         }
         updateLibrary?.invoke(category.id)
         return true

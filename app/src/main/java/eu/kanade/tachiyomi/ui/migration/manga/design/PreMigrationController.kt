@@ -150,25 +150,11 @@ class PreMigrationController(
      *
      * @return list containing enabled sources.
      */
-    private fun getEnabledSources(): List<CatalogueSource> {
-        val languages = prefs.enabledLanguages().get()
-        val sourcesSaved = prefs.migrationSources().get().split("/")
-        var sources =
-            sourceManager
-                .getCatalogueSources()
-                .filter { it.lang in languages }
-                .sortedBy { "(${it.lang}) ${it.name}" }
-        sources =
-            sources.filter { isEnabled(it.id.toString()) }.sortedBy {
-                sourcesSaved.indexOf(
-                    it.id
-                        .toString(),
-                )
-            } +
-            sources.filterNot { isEnabled(it.id.toString()) }
-
-        return sources
-    }
+    private fun getEnabledSources(): List<CatalogueSource> =
+        sourceManager
+            .getCatalogueSources()
+            .filterIsInstance<CatalogueSource>()
+            .sortedBy { it.name }
 
     fun isEnabled(id: String): Boolean {
         val sourcesSaved = prefs.migrationSources().get()

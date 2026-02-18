@@ -3,28 +3,16 @@ package eu.kanade.tachiyomi
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import eu.kanade.tachiyomi.data.backup.BackupCreatorJob
-import eu.kanade.tachiyomi.data.download.DownloadProvider
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
-import eu.kanade.tachiyomi.data.preference.Preference
-import eu.kanade.tachiyomi.data.preference.PreferenceKeys
 import eu.kanade.tachiyomi.data.preference.PreferenceStore
 import eu.kanade.tachiyomi.data.preference.PreferenceValues
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.plusAssign
-import eu.kanade.tachiyomi.data.track.TrackManager
-import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
-import eu.kanade.tachiyomi.data.updater.AppUpdateJob
-import eu.kanade.tachiyomi.extension.ExtensionUpdateJob
-import eu.kanade.tachiyomi.network.PREF_DOH_CLOUDFLARE
 import eu.kanade.tachiyomi.ui.library.LibraryPresenter
 import eu.kanade.tachiyomi.ui.library.LibrarySort
 import eu.kanade.tachiyomi.ui.reader.settings.OrientationType
 import eu.kanade.tachiyomi.ui.recents.RecentsPresenter
 import eu.kanade.tachiyomi.util.system.launchIO
-import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.CoroutineScope
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.File
 import kotlin.math.max
 
@@ -42,32 +30,18 @@ object Migrations {
     ): Boolean {
         val context = preferences.context
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        prefs.edit {
-            remove(AppDownloadInstallJob.NOTIFY_ON_INSTALL_KEY)
-        }
+
         val oldVersion = preferences.lastVersionCode().get()
         if (oldVersion < BuildConfig.VERSION_CODE) {
             preferences.lastVersionCode().set(BuildConfig.VERSION_CODE)
 
             // Always set up background tasks to ensure they're running
-            if (BuildConfig.INCLUDE_UPDATER) {
-                AppUpdateJob.setupTask(context)
-            }
-            ExtensionUpdateJob.setupTask(context)
-            LibraryUpdateJob.setupTask(context)
             BackupCreatorJob.setupTask(context)
 
             if (oldVersion == 0) {
                 return BuildConfig.DEBUG
             }
 
-            if (oldVersion < 14) {
-                // Restore jobs after upgrading to evernote's job scheduler.
-                if (BuildConfig.INCLUDE_UPDATER) {
-                    AppUpdateJob.setupTask(context)
-                }
-                LibraryUpdateJob.setupTask(context)
-            }
             if (oldVersion < 15) {
                 // Delete internal chapter cache dir.
                 File(context.cacheDir, "chapter_disk_cache").deleteRecursively()
@@ -94,42 +68,14 @@ object Migrations {
                     }
                 }
             }
-            if (oldVersion < 54) {
-                DownloadProvider(context).renameChapters()
-            }
             if (oldVersion < 62) {
                 LibraryPresenter.updateDB()
-                // Restore jobs after migrating from Evernote's job scheduler to WorkManager.
-                if (BuildConfig.INCLUDE_UPDATER) {
-                    AppUpdateJob.setupTask(context)
-                }
-                LibraryUpdateJob.setupTask(context)
                 BackupCreatorJob.setupTask(context)
-                ExtensionUpdateJob.setupTask(context)
             }
             if (oldVersion < 66) {
                 LibraryPresenter.updateCustoms()
             }
-            if (oldVersion < 68) {
-                // Force MAL log out due to login flow change
-                // v67: switched from scraping to WebView
-                // v68: switched from WebView to OAuth
-                val trackManager = Injekt.get<TrackManager>()
-                if (trackManager.myAnimeList.isLogged) {
-                    trackManager.myAnimeList.logout()
-                    context.toast(R.string.myanimelist_relogin)
-                }
-            }
-            if (oldVersion < 71) {
-                // Migrate DNS over HTTPS setting
-                val wasDohEnabled = prefs.getBoolean("enable_doh", false)
-                if (wasDohEnabled) {
-                    prefs.edit {
-                        putInt(PreferenceKeys.dohProvider, PREF_DOH_CLOUDFLARE)
-                        remove("enable_doh")
-                    }
-                }
-            }
+
             if (oldVersion < 73) {
                 // Reset rotation to Free after replacing Lock
                 if (prefs.contains("pref_rotation_type_key")) {
@@ -138,28 +84,7 @@ object Migrations {
                     }
                 }
             }
-            if (oldVersion < 74) {
-                // Turn on auto updates for all users
-                if (BuildConfig.INCLUDE_UPDATER) {
-                    AppUpdateJob.setupTask(context)
-                }
-            }
-            if (oldVersion < 75) {
-                val wasShortcutsDisabled = !prefs.getBoolean("show_manga_app_shortcuts", true)
-                if (wasShortcutsDisabled) {
-                    prefs.edit {
-                        putBoolean(PreferenceKeys.showSourcesInShortcuts, false)
-                        putBoolean(PreferenceKeys.showSeriesInShortcuts, false)
-                        remove("show_manga_app_shortcuts")
-                    }
-                }
-                // Handle removed every 1 or 2 hour library updates
-                val updateInterval = preferences.libraryUpdateInterval().get()
-                if (updateInterval == 1 || updateInterval == 2) {
-                    preferences.libraryUpdateInterval().set(3)
-                    LibraryUpdateJob.setupTask(context, 3)
-                }
-            }
+
             if (oldVersion < 77) {
                 // Migrate Rotation and Viewer values to default values for viewer_flags
                 val newOrientation =
@@ -187,14 +112,7 @@ object Migrations {
                     preferences.enabledLanguages() += "all"
                 }
             }
-            if (oldVersion < 86) {
-                // Handle removed every 3, 4, 6, and 8 hour library updates
-                val updateInterval = preferences.libraryUpdateInterval().get()
-                if (updateInterval in listOf(3, 4, 6, 8)) {
-                    preferences.libraryUpdateInterval().set(12)
-                    LibraryUpdateJob.setupTask(context, 12)
-                }
-            }
+
             if (oldVersion < 88) {
                 scope.launchIO {
                     LibraryPresenter.updateRatiosAndColors()
@@ -223,24 +141,7 @@ object Migrations {
                     preferences.groupChaptersHistory().set(RecentsPresenter.GroupType.Never)
                 }
             }
-            if (oldVersion < 105) {
-                LibraryUpdateJob.cancelAllWorks(context)
-                LibraryUpdateJob.setupTask(context)
-            }
-            if (oldVersion < 108) {
-                preferenceStore
-                    .getAll()
-                    .filter { it.key.startsWith("pref_mangasync_") || it.key.startsWith("track_token_") }
-                    .forEach { (key, value) ->
-                        if (value is String) {
-                            preferenceStore
-                                .getString(Preference.privateKey(key))
-                                .set(value)
 
-                            preferenceStore.getString(key).delete()
-                        }
-                    }
-            }
             if (oldVersion < 110) {
                 try {
                     val librarySortString = prefs.getString("library_sorting_mode", "")

@@ -127,9 +127,7 @@ class MangaDetailsAdapter(
         }
     }
 
-    interface MangaDetailsInterface :
-        MangaHeaderInterface,
-        DownloadInterface
+    interface MangaDetailsInterface : MangaHeaderInterface
 
     interface MangaHeaderInterface {
         fun coverColor(): Int?

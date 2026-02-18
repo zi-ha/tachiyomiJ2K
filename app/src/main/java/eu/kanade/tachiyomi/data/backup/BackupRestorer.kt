@@ -22,10 +22,8 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.library.CustomMangaManager
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.AndroidPreferenceStore
 import eu.kanade.tachiyomi.data.preference.PreferenceStore
-import eu.kanade.tachiyomi.extension.ExtensionUpdateJob
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.sourcePreferences
 import eu.kanade.tachiyomi.ui.library.LibrarySort
@@ -178,7 +176,6 @@ class BackupRestorer(
 
         restoreProgress += 1
         showRestoreProgress(restoreProgress, restoreAmount, manga.title)
-        LibraryUpdateJob.updateMutableFlow.tryEmit(manga.id)
     }
 
     /**
@@ -381,8 +378,6 @@ class BackupRestorer(
     private fun restoreAppPreferences(preferences: List<BackupPreference>) {
         restorePreferences(preferences, preferenceStore)
 
-        ExtensionUpdateJob.setupTask(context)
-        LibraryUpdateJob.setupTask(context)
         BackupCreatorJob.setupTask(context)
 
         restoreProgress += 1

@@ -11,10 +11,6 @@ import com.google.android.material.color.DynamicColors
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
-import eu.kanade.tachiyomi.extension.model.InstalledExtensionsOrder
-import eu.kanade.tachiyomi.extension.util.ExtensionInstaller
-import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import eu.kanade.tachiyomi.ui.library.filter.FilterBottomSheet
 import eu.kanade.tachiyomi.ui.reader.settings.OrientationType
@@ -319,12 +315,6 @@ class PreferencesHelper(
 
     fun librarySortingAscending() = flowPrefs.getBoolean("library_sorting_ascending", true)
 
-    fun automaticExtUpdates() = flowPrefs.getBoolean(Keys.automaticExtUpdates, true)
-
-    fun extensionRepos() = flowPrefs.getStringSet("extension_repos", emptySet())
-
-    fun installedExtensionsOrder() = flowPrefs.getInt(Keys.installedExtensionsOrder, InstalledExtensionsOrder.Name.value)
-
     fun migrationSourceOrder() = flowPrefs.getInt("migration_source_order", Values.MigrationSourceOrder.Alphabetically.value)
 
     fun collapsedCategories() = flowPrefs.getStringSet("collapsed_categories", mutableSetOf())
@@ -406,10 +396,6 @@ class PreferencesHelper(
 
     fun showTitleFirstInRecents() = flowPrefs.getBoolean(Keys.showTitleFirstInRecents, false)
 
-    fun lastExtCheck() = flowPrefs.getLong("last_ext_check", 0)
-
-    fun lastAppCheck() = flowPrefs.getLong("last_app_check", 0)
-
     fun checkForBetas() = flowPrefs.getBoolean("check_for_betas", BuildConfig.BETA)
 
     fun unreadBadgeType() = flowPrefs.getInt("unread_badge_type", 2)
@@ -473,8 +459,6 @@ class PreferencesHelper(
 
     fun dohProvider() = prefs.getInt(Keys.dohProvider, -1)
 
-    fun defaultUserAgent() = flowPrefs.getString("default_user_agent", NetworkHelper.DEFAULT_USER_AGENT)
-
     fun showSeriesInShortcuts() = prefs.getBoolean(Keys.showSeriesInShortcuts, true)
 
     fun showSourcesInShortcuts() = prefs.getBoolean(Keys.showSourcesInShortcuts, true)
@@ -486,12 +470,6 @@ class PreferencesHelper(
     fun hasPromptedBeforeUpdateAll() = flowPrefs.getBoolean("has_prompted_update_all", false)
 
     fun sideNavMode() = flowPrefs.getInt(Keys.sideNavMode, 0)
-
-    fun appShouldAutoUpdate() = prefs.getInt(Keys.shouldAutoUpdate, AppDownloadInstallJob.ONLY_ON_UNMETERED)
-
-    fun autoUpdateExtensions() = prefs.getInt(Keys.autoUpdateExtensions, AppDownloadInstallJob.ONLY_ON_UNMETERED)
-
-    fun extensionInstaller() = flowPrefs.getInt("extension_installer", ExtensionInstaller.PACKAGE_INSTALLER)
 
     fun filterChapterByRead() = flowPrefs.getInt(Keys.DEFAULT_CHAPTER_FILTER_BY_READ, Manga.SHOW_ALL)
 

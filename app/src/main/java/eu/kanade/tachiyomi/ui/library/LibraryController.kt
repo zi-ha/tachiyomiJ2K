@@ -61,10 +61,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.LibraryManga
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadJob
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
-import eu.kanade.tachiyomi.data.notification.NotificationReceiver
-import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.LibraryControllerBinding
 import eu.kanade.tachiyomi.source.LocalSource
@@ -90,7 +86,6 @@ import eu.kanade.tachiyomi.ui.main.RootSearchInterface
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.migration.manga.design.PreMigrationController
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
-import eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.moveCategories
 import eu.kanade.tachiyomi.util.system.disableItems
@@ -642,7 +637,6 @@ open class LibraryController(
         setupFilterSheet()
         setUpHopper()
         setPreferenceFlows()
-        LibraryUpdateJob.updateFlow.onEach(::onUpdateManga).launchIn(viewScope)
 
         elevateAppBar =
             scrollViewWith(
@@ -723,16 +717,14 @@ open class LibraryController(
         with(binding.swipeRefresh) {
             setOnRefreshListener {
                 isRefreshing = false
-                if (!LibraryUpdateJob.isRunning(context)) {
-                    when {
-                        !presenter.showAllCategories && presenter.groupType == BY_DEFAULT -> {
-                            presenter.allCategories.find { it.id == presenter.currentCategory }?.let {
-                                updateLibrary(it)
-                            }
+                when {
+                    !presenter.showAllCategories && presenter.groupType == BY_DEFAULT -> {
+                        presenter.allCategories.find { it.id == presenter.currentCategory }?.let {
+                            updateLibrary(it)
                         }
-                        !presenter.showAllCategories -> updateCategory(0)
-                        else -> updateLibrary()
                     }
+                    !presenter.showAllCategories -> updateCategory(0)
+                    else -> updateLibrary()
                 }
             }
         }
@@ -999,22 +991,12 @@ open class LibraryController(
         }
 
     private fun updateLibrary(category: Category? = null) {
-        val view = view ?: return
-        LibraryUpdateJob.startNow(view.context, category)
-        snack =
-            view.snack(R.string.updating_library) {
-                anchorView = anchorView()
-                this.view.elevation = 15f.dpToPx
-                setAction(R.string.cancel) {
-                    LibraryUpdateJob.stop(context)
-                    viewScope.launchUI {
-                        NotificationReceiver.dismissNotification(
-                            context,
-                            Notifications.ID_LIBRARY_PROGRESS,
-                        )
-                    }
-                }
-            }
+        // TODO: Implement local update if needed
+    }
+
+    override fun updateCategory(position: Int): Boolean {
+        // TODO: Implement local update if needed
+        return true
     }
 
     private fun setRecyclerLayout() {
@@ -1094,7 +1076,6 @@ open class LibraryController(
                 presenter.getLibrary()
                 isPoppingIn = true
             }
-            DownloadJob.callListeners()
             binding.recyclerCover.isClickable = false
             binding.recyclerCover.isFocusable = false
             singleCategory = presenter.categories.size <= 1
@@ -1723,15 +1704,6 @@ open class LibraryController(
         }
     }
 
-    private fun onUpdateManga(mangaId: Long?) {
-        if (mangaId == LibraryUpdateJob.STARTING_UPDATE_SOURCE) return
-        if (mangaId == null) {
-            adapter.getHeaderPositions().forEach { adapter.notifyItemChanged(it) }
-        } else {
-            presenter.updateManga()
-        }
-    }
-
     private fun setSelection(
         position: Int,
         selected: Boolean = true,
@@ -1858,49 +1830,6 @@ open class LibraryController(
                     presenter.moveMangaToCategory(manga, oldCatId, mangaIds)
                 }
             }
-    }
-
-    override fun updateCategory(position: Int): Boolean {
-        val category = (adapter.getItem(position) as? LibraryHeaderItem)?.category ?: return false
-        val inQueue = LibraryUpdateJob.categoryInQueue(category.id)
-        snack?.dismiss()
-        snack =
-            view?.snack(
-                resources!!.getString(
-                    when {
-                        inQueue -> R.string._already_in_queue
-                        LibraryUpdateJob.isRunning(view!!.context) -> R.string.adding_category_to_queue
-                        else -> R.string.updating_
-                    },
-                    category.name,
-                ),
-                Snackbar.LENGTH_LONG,
-            ) {
-                anchorView = anchorView()
-                view.elevation = 15f.dpToPx
-                setAction(R.string.cancel) {
-                    LibraryUpdateJob.stop(context)
-                    viewScope.launchUI {
-                        NotificationReceiver.dismissNotification(
-                            context,
-                            Notifications.ID_LIBRARY_PROGRESS,
-                        )
-                    }
-                }
-            }
-        if (!inQueue) {
-            LibraryUpdateJob.startNow(
-                view!!.context,
-                category,
-                mangaToUse =
-                    if (category.isDynamic) {
-                        presenter.getMangaInCategories(category.id)
-                    } else {
-                        null
-                    },
-            )
-        }
-        return true
     }
 
     override fun toggleCategoryVisibility(position: Int) {

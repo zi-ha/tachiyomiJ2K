@@ -3,16 +3,12 @@ package eu.kanade.tachiyomi.ui.manga.chapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.content.res.ColorStateList
 import android.view.View
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
-import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
-import androidx.core.widget.TextViewCompat
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.databinding.ChaptersItemBinding
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsAdapter
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
@@ -20,7 +16,6 @@ import eu.kanade.tachiyomi.util.chapter.ChapterUtil.Companion.preferredChapterNa
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.system.cardColor
 import eu.kanade.tachiyomi.util.system.dpToPx
-import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.view.makeContainerShape
 
 @SuppressLint("ClickableViewAccessibility")
@@ -33,13 +28,7 @@ class ChapterHolder(
 
     init {
         binding.chapterCard.setCardBackgroundColor(itemView.context.cardColor)
-        binding.downloadButton.downloadButton.setOnLongClickListener {
-            adapter.delegate.startDownloadRange(flexibleAdapterPosition)
-            true
-        }
-        binding.expandedDownloadTarget.setOnTouchListener { _, event ->
-            binding.downloadButton.downloadButton.onTouchEvent(event)
-        }
+        // Download button removed
     }
 
     fun bind(
@@ -52,7 +41,7 @@ class ChapterHolder(
         binding.chapterTitle.text =
             chapter.preferredChapterName(itemView.context, manga, adapter.preferences)
 
-        binding.downloadButton.downloadButton.isVisible = !manga.isLocal() && !isLocked
+        binding.downloadButton.downloadButton.isVisible = false
         localSource = manga.isLocal()
 
         ChapterUtil.setTextViewForChapter(binding.chapterTitle, item, hideStatus = isLocked)
@@ -101,13 +90,6 @@ class ChapterHolder(
         )
         binding.chapterScanlator.text = statuses.joinToString(" • ")
 
-        val status =
-            when {
-                adapter.isSelected(flexibleAdapterPosition) -> Download.State.CHECKED
-                else -> item.status
-            }
-
-        notifyStatus(status, item.isLocked, item.progress)
         resetFrontView()
         if (flexibleAdapterPosition == 1) {
             if (!adapter.hasShownSwipeTut.get()) showSlideAnimation()
@@ -159,40 +141,7 @@ class ChapterHolder(
         }
     }
 
-    fun notifyStatus(
-        status: Download.State,
-        locked: Boolean,
-        progress: Int,
-        animated: Boolean = false,
-    ) = with(binding.downloadButton.downloadButton) {
-        adapter.delegate.accentColor()?.let {
-            binding.startView.setCardBackgroundColor(it)
-
-            val color = binding.chapterCard.context.cardColor
-            val bgArray = FloatArray(3)
-            val accentArray = FloatArray(3)
-            ColorUtils.colorToHSL(color, bgArray)
-            ColorUtils.colorToHSL(it, accentArray)
-            bgArray[0] = accentArray[0]
-            binding.chapterCard.setCardBackgroundColor(ColorUtils.HSLToColor(bgArray))
-
-            binding.bookmark.imageTintList =
-                ColorStateList.valueOf(
-                    context.getResourceColor(android.R.attr.textColorPrimaryInverse),
-                )
-            TextViewCompat.setCompoundDrawableTintList(
-                binding.chapterTitle,
-                ColorStateList.valueOf(it),
-            )
-            accentColor = it
-        }
-        if (locked) {
-            isVisible = false
-            return
-        }
-        isVisible = !localSource
-        setDownloadStatus(status, progress, animated)
-    }
+    // notifyStatus removed
 
     fun setCorners(
         top: Boolean,

@@ -1,14 +1,9 @@
 package eu.kanade.tachiyomi.ui.setting
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.Intent
-import android.os.PowerManager
-import android.provider.Settings
 import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceScreen
 import eu.kanade.tachiyomi.R
@@ -60,28 +55,6 @@ class SettingsAdvancedController : SettingsController() {
 
             preferenceCategory {
                 titleRes = R.string.label_background_activity
-                val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager?
-                if (pm != null) {
-                    preference {
-                        key = "disable_batt_opt"
-                        titleRes = R.string.disable_battery_optimization
-                        summaryRes = R.string.disable_if_issues_with_updating
-
-                        onClick {
-                            val packageName: String = context.packageName
-                            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                                val intent =
-                                    Intent().apply {
-                                        action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                                        data = "package:$packageName".toUri()
-                                    }
-                                startActivity(intent)
-                            } else {
-                                context.toast(R.string.battery_optimization_disabled)
-                            }
-                        }
-                    }
-                }
 
                 preference {
                     key = "pref_dont_kill_my_app"

@@ -12,7 +12,6 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaChapterHistory
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
@@ -28,7 +27,6 @@ import eu.kanade.tachiyomi.util.system.roundToTwoDecimal
 import eu.kanade.tachiyomi.util.system.withUIContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -37,7 +35,6 @@ import kotlin.math.roundToInt
 class StatsDetailsPresenter(
     private val db: DatabaseHelper = Injekt.get(),
     private val prefs: PreferencesHelper = Injekt.get(),
-    val trackManager: TrackManager = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
 ) : BaseCoroutinePresenter<StatsDetailsController>() {
     private val context
@@ -49,7 +46,6 @@ class StatsDetailsPresenter(
         }
     private var mangasDistinct = libraryMangas.distinct()
     val sources = getEnabledSources()
-    val extensionManager by injectLazy<ExtensionManager>()
     val enabledLanguages = prefs.enabledLanguages().get()
 
     var selectedStat: Stats? = null
@@ -250,6 +246,8 @@ class StatsDetailsPresenter(
 
     private fun setupTrackers() {
         currentStats = ArrayList()
+        // Tracking removed for local reader
+        /*
         val libraryFormat =
             mangasDistinct
                 .filterByChip()
@@ -271,12 +269,13 @@ class StatsDetailsPresenter(
                     totalChapters = mangaAndTrack.sumOf { it.first.totalChapters },
                     label = label,
                     iconRes = service?.getLogo(),
-                    iconBGColor = service?.getLogoColor(),
+                    // iconBGColor = service?.getLogoColor(),
                     readDuration = mangaAndTrack.map { it.first }.getReadDuration(),
                     id = service?.id?.toLong(),
                 ),
             )
         }
+         */
         sortCurrentStats()
     }
 
@@ -541,10 +540,7 @@ class StatsDetailsPresenter(
     /**
      * Convert the score to a 10 point score
      */
-    private fun Track.get10PointScore(): Float? {
-        val service = trackManager.getService(this.sync_id)
-        return service?.get10PointScore(this.score)
-    }
+    private fun Track.get10PointScore(): Float? = null
 
     private fun LibraryManga.getStartYear(): Int? {
         if (db.getChapters(id).executeAsBlocking().any { it.read }) {

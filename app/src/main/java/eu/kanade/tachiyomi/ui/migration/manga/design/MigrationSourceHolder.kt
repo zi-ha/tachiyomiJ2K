@@ -3,8 +3,8 @@ package eu.kanade.tachiyomi.ui.migration.manga.design
 import android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
 import android.view.View
 import eu.kanade.tachiyomi.databinding.MigrationSourceItemBinding
+import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.icon
-import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
 
 class MigrationSourceHolder(
@@ -21,7 +21,7 @@ class MigrationSourceHolder(
         source: CatalogueSource,
         sourceEnabled: Boolean,
     ) {
-        binding.title.text = source.nameBasedOnEnabledLanguages(adapter.enabledLanguages)
+        binding.title.text = source.name
         // Update circle letter image.
         itemView.post {
             val icon = source.icon()

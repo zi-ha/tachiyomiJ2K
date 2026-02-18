@@ -35,7 +35,6 @@ import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.ui.base.SmallToolbarInterface
 import eu.kanade.tachiyomi.ui.base.controller.BaseCoroutineController
 import eu.kanade.tachiyomi.ui.library.FilteredLibraryController
-import eu.kanade.tachiyomi.ui.library.filter.FilterBottomSheet
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.more.stats.StatsHelper.getReadDuration
 import eu.kanade.tachiyomi.ui.more.stats.details.StatsDetailsPresenter.Stats
@@ -391,10 +390,7 @@ class StatsDetailsController :
                     when (it) {
                         is Category -> it.name
                         is Source ->
-                            it.nameBasedOnEnabledLanguages(
-                                presenter.enabledLanguages,
-                                presenter.extensionManager,
-                            )
+                            it.name
                         else -> it.toString()
                     }
                 }.toTypedArray()
@@ -546,11 +542,7 @@ class StatsDetailsController :
                 1 -> {
                     when (val firstValue = selectedValues.first()) {
                         is Category -> firstValue.name
-                        is Source ->
-                            firstValue.nameBasedOnEnabledLanguages(
-                                presenter.enabledLanguages,
-                                presenter.extensionManager,
-                            )
+                        is Source -> firstValue.name
                         else -> firstValue.toString()
                     }
                 }
@@ -721,29 +713,7 @@ class StatsDetailsController :
                 )
             }
             Stats.TRACKER -> {
-                val serviceName: String? =
-                    id?.let {
-                        val loggedServices = presenter.trackManager.services.filter { it.isLogged }
-                        val service = loggedServices.find { it.id == id.toInt() } ?: return
-                        return@let binding.root.context.getString(service.nameRes())
-                    }
-                router.pushController(
-                    FilteredLibraryController(
-                        serviceName ?: name,
-                        filterMangaType = seriesTypes,
-                        filterStatus = statuses,
-                        filterSources = sources,
-                        filterLanguages = languages,
-                        filterCategories = categories,
-                        filterTracked =
-                            if (serviceName == null) {
-                                FilterBottomSheet.STATE_EXCLUDE
-                            } else {
-                                FilterBottomSheet.STATE_INCLUDE
-                            },
-                        filterTrackerName = serviceName,
-                    ).withFadeTransaction(),
-                )
+                // No-op for local reader
             }
             Stats.LENGTH -> {
                 val range: IntRange =

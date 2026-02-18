@@ -16,7 +16,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -82,27 +81,6 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="reader.kireicake.com"
-                    android:pathPattern="/read/..*/..*/..*/..*"
-                    android:scheme="https" />
-
-                <data
-                    android:host="mangaplus.shueisha.co.jp"
-                    android:pathPattern="/viewer/..*"
-                    android:scheme="https" />
-
-                <data
-                    android:host="cubari.moe"
-                    android:pathPattern="/read/imgur/..*"
-                    android:scheme="https" />
-
-                <!-- Only link to a chapter if the gist contains a chapter number -->
-                <data
-                    android:host="cubari.moe"
-                    android:pathPattern="/read/gist/..*/..*"
-                    android:scheme="https" />
             </intent-filter>
 
             <intent-filter>
@@ -206,11 +184,6 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/updates_grid_glance_widget_info" />
         </receiver>
-
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:foregroundServiceType="dataSync"
-            tools:node="merge" />
 
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"

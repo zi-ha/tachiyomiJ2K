@@ -19,7 +19,6 @@ import com.github.florent37.viewtooltip.ViewTooltip
 import eu.davidea.flexibleadapter.SelectableAdapter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Category
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.LibraryCategoryHeaderItemBinding
 import eu.kanade.tachiyomi.source.icon
@@ -226,12 +225,6 @@ class LibraryHeaderHolder(
                 binding.checkbox.isVisible = false
                 setRefreshing(false)
                 binding.updateButton.isVisible = false
-            }
-            LibraryUpdateJob.categoryInQueue(category.id) -> {
-                binding.collapseArrow.isVisible = !adapter.isSingleCategory
-                binding.checkbox.isVisible = false
-                binding.updateButton.isVisible = true
-                setRefreshing(true)
             }
             else -> {
                 binding.collapseArrow.isVisible = !adapter.isSingleCategory

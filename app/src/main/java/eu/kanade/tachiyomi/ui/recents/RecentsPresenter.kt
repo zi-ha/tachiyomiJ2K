@@ -520,9 +520,7 @@ class RecentsPresenter(
     }
 
     private fun downloadStatusChanged(downloading: Boolean) {
-        presenterScope.launchUI {
-            view?.updateDownloadStatus(downloading)
-        }
+        // No-op
     }
 
     private fun onUpdateManga(mangaId: Long?) {
@@ -530,7 +528,6 @@ class RecentsPresenter(
             null -> {
                 presenterScope.launchUI { view?.setRefreshing(false) }
             }
-            // LibraryUpdateJob removed
             else -> {
                 getRecents()
             }

@@ -260,9 +260,7 @@ class ReaderViewModel(
         return lastPage
     }
 
-    fun getChapterUrl(chapter: Chapter? = null): String? {
-        return null
-    }
+    fun getChapterUrl(chapter: Chapter? = null): String? = null
 
     suspend fun loadChapterURL(uri: android.net.Uri) {
         // No-op

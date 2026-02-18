@@ -30,6 +30,10 @@ object Notifications {
     const val ID_NEW_CHAPTERS = -301
     const val GROUP_NEW_CHAPTERS = "eu.kanade.tachiyomi.NEW_CHAPTERS"
 
+    const val CHANNEL_DOWNLOADER = "downloader_channel"
+    const val CHANNEL_UPDATES_TO_EXTS = "updates_ext_channel"
+    const val GROUP_EXTENSION_UPDATES = "group_extension_updates"
+
     /**
      * Notification channel and ids used by the library updater.
      */
@@ -116,20 +120,6 @@ object Notifications {
                 ).apply {
                     group = GROUP_LIBRARY
                     setShowBadge(false)
-                },
-                NotificationChannel(
-                    CHANNEL_DOWNLOADER,
-                    context.getString(R.string.downloads),
-                    NotificationManager.IMPORTANCE_LOW,
-                ).apply {
-                    setShowBadge(false)
-                },
-                NotificationChannel(
-                    CHANNEL_UPDATES_TO_EXTS,
-                    context.getString(R.string.extension_updates_pending),
-                    NotificationManager.IMPORTANCE_DEFAULT,
-                ).apply {
-                    group = GROUP_EXTENSION_UPDATES
                 },
                 NotificationChannel(
                     CHANNEL_NEW_CHAPTERS,

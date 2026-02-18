@@ -44,7 +44,6 @@ import eu.kanade.tachiyomi.ui.main.TabbedInterface
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.recents.options.TabbedRecentsOptionsSheet
-// import eu.kanade.tachiyomi.ui.source.browse.ProgressItem
 import eu.kanade.tachiyomi.util.system.addCheckBoxPrompt
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
@@ -56,9 +55,7 @@ import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.system.setCustomTitleAndMessage
 import eu.kanade.tachiyomi.util.view.activityBinding
-import eu.kanade.tachiyomi.util.view.collapse
 import eu.kanade.tachiyomi.util.view.compatToolTipText
-import eu.kanade.tachiyomi.util.view.expand
 import eu.kanade.tachiyomi.util.view.fullAppBarHeight
 import eu.kanade.tachiyomi.util.view.hide
 import eu.kanade.tachiyomi.util.view.isControllerVisible
@@ -252,7 +249,6 @@ class RecentsController(
     private fun setBottomPadding() {
         val bottomBar = activityBinding?.bottomNav
         val pad = bottomBar?.translationY?.minus(bottomBar.height) ?: 0f
-        // Removed download bottom sheet padding logic
     }
 
     fun setRefreshing(refresh: Boolean) {
@@ -391,17 +387,6 @@ class RecentsController(
         }
     }
 
-    fun updateChapterDownload(
-        download: Any,
-        updateDLSheet: Boolean = true,
-    ) {
-        // No-op
-    }
-
-    fun updateDownloadStatus(isRunning: Boolean) {
-        // No-op
-    }
-
     private fun refreshItem(chapterId: Long) {
         val recentItemPos =
             adapter.currentItems.indexOfFirst {
@@ -409,28 +394,6 @@ class RecentsController(
                     it.mch.chapter.id == chapterId
             }
         if (recentItemPos > -1) adapter.notifyItemChanged(recentItemPos)
-    }
-
-    override fun downloadChapter(position: Int) {
-        // No-op
-    }
-
-    override fun startDownloadNow(position: Int) {
-        // No-op
-    }
-
-    override fun downloadChapter(
-        position: Int,
-        chapter: Chapter,
-    ) {
-        // No-op
-    }
-
-    override fun startDownloadNow(
-        position: Int,
-        chapter: Chapter,
-    ) {
-        // No-op
     }
 
     override fun onCoverClick(position: Int) {
@@ -738,51 +701,26 @@ class RecentsController(
         }
     }
 
-    fun hasQueue() = presenter.downloadManager.hasQueue()
+    fun hasQueue() = false // presenter.downloadManager.hasQueue()
 
-    override fun showSheet() {
-        if (!isBindingInitialized) return
-        if (binding.downloadBottomSheet.dlBottomSheet.sheetBehavior
-                ?.isHideable == false ||
-            hasQueue()
-        ) {
-            binding.downloadBottomSheet.dlBottomSheet.sheetBehavior
-                ?.expand()
-        }
+    fun showSheet() {
+        // No-op
     }
 
-    override fun hideSheet() {
-        if (!isBindingInitialized) return
-        if (binding.downloadBottomSheet.dlBottomSheet.sheetBehavior
-                ?.isHideable == true
-        ) {
-            binding.downloadBottomSheet.dlBottomSheet.sheetBehavior
-                ?.hide()
-        } else {
-            binding.downloadBottomSheet.dlBottomSheet.sheetBehavior
-                ?.collapse()
-        }
+    fun hideSheet() {
+        // No-op
     }
 
-    override fun toggleSheet() {
-        if (showingDownloads) {
-            binding.downloadBottomSheet.dlBottomSheet.dismiss()
-        } else {
-            binding.downloadBottomSheet.dlBottomSheet.sheetBehavior
-                ?.expand()
-        }
+    fun toggleSheet() {
+        // No-op
     }
 
     override fun expandSearch() {
-        if (showingDownloads) {
-            binding.downloadBottomSheet.dlBottomSheet.dismiss()
-        } else {
-            activityBinding
-                ?.searchToolbar
-                ?.menu
-                ?.findItem(R.id.action_search)
-                ?.expandActionView()
-        }
+        activityBinding
+            ?.searchToolbar
+            ?.menu
+            ?.findItem(R.id.action_search)
+            ?.expandActionView()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

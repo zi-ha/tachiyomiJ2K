@@ -32,8 +32,7 @@ import eu.kanade.tachiyomi.ui.base.controller.FadeChangeHandler
 import eu.kanade.tachiyomi.ui.main.BottomNavBarInterface
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.migration.manga.design.PreMigrationController
-import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
-import eu.kanade.tachiyomi.util.lang.toNormalized
+// import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
 import eu.kanade.tachiyomi.util.system.executeOnIO
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.launchUI
@@ -195,12 +194,12 @@ class MigrationListController(
                                                                 )
                                                             val chapters = source.getChapterList(localManga)
                                                             try {
-                                                                syncChaptersWithSource(
-                                                                    db,
-                                                                    chapters,
-                                                                    localManga,
-                                                                    source,
-                                                                )
+                                                                // syncChaptersWithSource(
+                                                                //    db,
+                                                                //    chapters,
+                                                                //    localManga,
+                                                                //    source,
+                                                                // )
                                                             } catch (e: Exception) {
                                                                 return@source null
                                                             }
@@ -244,7 +243,7 @@ class MigrationListController(
                                                             emptyList()
                                                         }
                                                     withContext(Dispatchers.IO) {
-                                                        syncChaptersWithSource(db, chapters, localManga, source)
+                                                        // syncChaptersWithSource(db, chapters, localManga, source)
                                                     }
                                                     localManga
                                                 } else {
@@ -369,7 +368,7 @@ class MigrationListController(
                         val localManga = smartSearchEngine.networkToLocalManga(manga, source.id)
                         try {
                             val chapters = source.getChapterList(localManga)
-                            syncChaptersWithSource(db, chapters, localManga, source)
+                            // syncChaptersWithSource(db, chapters, localManga, source)
                         } catch (e: Exception) {
                             return@async null
                         }

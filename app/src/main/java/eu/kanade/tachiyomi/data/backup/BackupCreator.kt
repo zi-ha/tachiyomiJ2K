@@ -16,8 +16,6 @@ import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_HISTORY
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_HISTORY_MASK
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_READ_MANGA
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_READ_MANGA_MASK
-import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_SOURCE_PREFS
-import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_SOURCE_PREFS_MASK
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_TRACK
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_TRACK_MASK
 import eu.kanade.tachiyomi.data.backup.models.Backup
@@ -41,10 +39,7 @@ import eu.kanade.tachiyomi.data.library.CustomMangaManager
 import eu.kanade.tachiyomi.data.preference.Preference
 import eu.kanade.tachiyomi.data.preference.PreferenceStore
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.source.preferenceKey
-import eu.kanade.tachiyomi.source.sourcePreferences
 import eu.kanade.tachiyomi.ui.library.LibrarySort
 import kotlinx.serialization.protobuf.ProtoBuf
 import okio.buffer
@@ -256,9 +251,7 @@ class BackupCreator(
         return preferenceStore.getAll().toBackupPreferences()
     }
 
-    private fun backupSourcePreferences(flags: Int): List<BackupSourcePreferences> {
-        return emptyList()
-    }
+    private fun backupSourcePreferences(flags: Int): List<BackupSourcePreferences> = emptyList()
 
     @Suppress("UNCHECKED_CAST")
     private fun Map<String, *>.toBackupPreferences(): List<BackupPreference> {

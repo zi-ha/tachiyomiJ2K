@@ -9,8 +9,6 @@ import eu.kanade.tachiyomi.data.preference.MANGA_HAS_UNREAD
 import eu.kanade.tachiyomi.data.preference.MANGA_NON_COMPLETED
 import eu.kanade.tachiyomi.data.preference.MANGA_NON_READ
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.track.TrackManager
-import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SManga
@@ -24,8 +22,6 @@ import uy.kohesive.injekt.api.get
 class StatsPresenter(
     private val db: DatabaseHelper = Injekt.get(),
     private val prefs: PreferencesHelper = Injekt.get(),
-    private val trackManager: TrackManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
 ) {
     private val libraryMangas = getLibrary()
@@ -35,7 +31,7 @@ class StatsPresenter(
 
     fun getTracks(manga: Manga): MutableList<Track> = db.getTracks(manga).executeAsBlocking()
 
-    fun getLoggedTrackers(): List<TrackService> = trackManager.services.filter { it.isLogged }
+    fun getLoggedTrackers(): List<Any> = emptyList()
 
     fun getSources(): List<CatalogueSource> {
         val languages = prefs.enabledLanguages().get()
@@ -64,10 +60,7 @@ class StatsPresenter(
 
     fun getDownloadCount(manga: LibraryManga): Int = 0
 
-    fun get10PointScore(track: Track): Float? {
-        val service = trackManager.getService(track.sync_id)
-        return service?.get10PointScore(track.score)
-    }
+    fun get10PointScore(track: Track): Float? = null
 
     fun getReadDuration(): String {
         val chaptersTime = db.getTotalReadDuration()

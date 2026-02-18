@@ -50,7 +50,7 @@
 - 更新/扩展角标与入口移除：
   - 删除 MainActivity 中扩展更新/扩展 API 逻辑。
 
-5) 后台任务与服务清理
+5) 后台任务与服务清理 [已完成]
 - 禁用网络相关 WorkManager 任务：
   - LibraryUpdateJob：依赖 HttpSource 拉取章节；直接删除该 Job 与入口。[LibraryUpdateJob.kt](file:///d:/Desktop/tachiyomiJ2K/app/src/main/java/eu/kanade/tachiyomi/data/library/LibraryUpdateJob.kt)
   - ExtensionUpdateJob、AppUpdateChecker/Notifier：完全下线。

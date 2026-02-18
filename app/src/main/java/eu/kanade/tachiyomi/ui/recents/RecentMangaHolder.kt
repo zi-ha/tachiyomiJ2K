@@ -224,7 +224,7 @@ class RecentMangaHolder(
             notifyStatus(
                 null,
                 0,
-                item.chapter.read
+                item.chapter.read,
             )
         }
 

@@ -40,7 +40,6 @@ import androidx.core.animation.doOnEnd
 import androidx.core.app.ActivityCompat
 import androidx.core.content.getSystemService
 import androidx.core.graphics.ColorUtils
-import androidx.core.net.toUri
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -73,6 +72,7 @@ import com.google.common.primitives.Ints.max
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.Migrations
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.preference.asImmediateFlowIn
 import eu.kanade.tachiyomi.databinding.MainActivityBinding
 import eu.kanade.tachiyomi.ui.base.MaterialMenuSheet
 import eu.kanade.tachiyomi.ui.base.SmallToolbarInterface
@@ -114,7 +114,6 @@ import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.findChild
 import eu.kanade.tachiyomi.util.view.getItemView
 import eu.kanade.tachiyomi.util.view.mainRecyclerView
-import eu.kanade.tachiyomi.util.view.snack
 import eu.kanade.tachiyomi.util.view.withFadeInTransaction
 import eu.kanade.tachiyomi.util.view.withFadeTransaction
 import kotlinx.coroutines.delay
@@ -360,21 +359,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         }
         var continueSwitchingTabs = false
         nav.getItemView(R.id.nav_library)?.setOnLongClickListener {
-            if (!LibraryUpdateJob.isRunning(this)) {
-                LibraryUpdateJob.startNow(this)
-                binding.mainContent.snack(R.string.updating_library) {
-                    anchorView = binding.bottomNav
-                    setAction(R.string.cancel) {
-                        LibraryUpdateJob.stop(context)
-                        lifecycleScope.launchUI {
-                            NotificationReceiver.dismissNotification(
-                                context,
-                                Notifications.ID_LIBRARY_PROGRESS,
-                            )
-                        }
-                    }
-                }
-            }
+            // Library update removed
             true
         }
         for (id in listOf(R.id.nav_recents)) {
@@ -1006,22 +991,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 if (router.backstack.isEmpty()) nav.selectedItemId = R.id.nav_library
                 router.pushController(MangaDetailsController(extras).withFadeTransaction())
             }
-            SHORTCUT_UPDATE_NOTES -> {
-                val extras = intent.extras ?: return false
-                if (router.backstack.isEmpty()) nav.selectedItemId = R.id.nav_library
-                if (router.backstack.lastOrNull()?.controller !is AboutController.NewUpdateDialogController) {
-                    AboutController.NewUpdateDialogController(extras).showDialog(router)
-                }
-            }
-            SHORTCUT_DOWNLOADS -> {
-                nav.selectedItemId = R.id.nav_recents
-                router.popToRoot()
-                nav.post {
-                    val controller =
-                        router.backstack.firstOrNull()?.controller as? RecentsController
-                    controller?.showSheet()
-                }
-            }
             else -> return false
         }
         return true
@@ -1439,15 +1408,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     }
 
     private fun downloadStatusChanged(downloading: Boolean) {
-        lifecycleScope.launchUI {
-            val hasQueue = downloading || downloadManager.hasQueue()
-            if (hasQueue) {
-                nav.getOrCreateBadge(R.id.nav_recents)
-                showDLQueueTutorial()
-            } else {
-                nav.removeBadge(R.id.nav_recents)
-            }
-        }
+        // Downloads removed
     }
 
     private fun whatsNewSheet() =
@@ -1525,10 +1486,8 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         const val SHORTCUT_RECENTS = "eu.kanade.tachiyomi.SHOW_RECENTS"
         const val SHORTCUT_RECENTLY_UPDATED = "eu.kanade.tachiyomi.SHOW_RECENTLY_UPDATED"
         const val SHORTCUT_RECENTLY_READ = "eu.kanade.tachiyomi.SHOW_RECENTLY_READ"
-        const val SHORTCUT_DOWNLOADS = "eu.kanade.tachiyomi.SHOW_DOWNLOADS"
         const val SHORTCUT_MANGA = "eu.kanade.tachiyomi.SHOW_MANGA"
         const val SHORTCUT_MANGA_BACK = "eu.kanade.tachiyomi.SHOW_MANGA_BACK"
-        const val SHORTCUT_UPDATE_NOTES = "eu.kanade.tachiyomi.SHOW_UPDATE_NOTES"
         const val SHORTCUT_READER_SETTINGS = "eu.kanade.tachiyomi.READER_SETTINGS"
 
         const val INTENT_SEARCH = "eu.kanade.tachiyomi.SEARCH"

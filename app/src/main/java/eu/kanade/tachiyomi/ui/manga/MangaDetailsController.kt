@@ -54,7 +54,6 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.image.coil.getBestColor
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
-import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.databinding.MangaDetailsControllerBinding
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
@@ -71,11 +70,9 @@ import eu.kanade.tachiyomi.ui.main.SearchActivity
 import eu.kanade.tachiyomi.ui.manga.chapter.ChapterHolder
 import eu.kanade.tachiyomi.ui.manga.chapter.ChapterItem
 import eu.kanade.tachiyomi.ui.manga.chapter.ChaptersSortBottomSheet
-import eu.kanade.tachiyomi.ui.manga.track.TrackItem
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.util.addOrRemoveToFavorites
-import eu.kanade.tachiyomi.util.chapter.updateTrackChapterMarkedAsRead
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.moveCategories
 import eu.kanade.tachiyomi.util.system.contextCompatColor
@@ -129,7 +126,7 @@ class MangaDetailsController :
     constructor(
         manga: Manga?,
         fromCatalogue: Boolean = false,
-        smartSearchConfig: BrowseController.SmartSearchConfig? = null,
+        smartSearchConfig: Any? = null,
         update: Boolean = false,
         shouldLockIfNeeded: Boolean = false,
     ) : super(
@@ -344,11 +341,6 @@ class MangaDetailsController :
                 val chapterHolder =
                     binding.recycler.findViewHolderForItemId(chapter.id!!) as? ChapterHolder
                         ?: return@forEach
-                chapterHolder.notifyStatus(
-                    chapter.status,
-                    isLocked(),
-                    chapter.progress,
-                )
             }
         }
     }
@@ -778,8 +770,6 @@ class MangaDetailsController :
                 adapter?.addSelection(position)
                 (binding.recycler.findViewHolderForAdapterPosition(position) as? BaseFlexibleViewHolder)
                     ?.toggleActivation()
-                (binding.recycler.findViewHolderForAdapterPosition(position) as? ChapterHolder)
-                    ?.notifyStatus(3, false, 0) // 3 = DOWNLOADED or similar (stubbed)
                 startingRangeChapterPos = position
                 actionMode?.invalidate()
             } else {
@@ -952,9 +942,7 @@ class MangaDetailsController :
                         ) {
                             super.onDismissed(transientBottomBar, event)
                             if (!undoing && !read) {
-                                updateTrackChapterMarkedAsRead(db, preferences, chapter, manga?.id) {
-                                    // Tracking removed
-                                }
+                                // Tracking removed
                             }
                         }
                     },
@@ -1404,29 +1392,7 @@ class MangaDetailsController :
     //endregion
 
     //region Tracking methods
-    fun refreshTracking(trackings: List<TrackItem>) {
-        // No-op
-    }
-
-    fun onTrackSearchResults(results: List<TrackSearch>) {
-        // No-op
-    }
-
-    fun refreshTracker() {
-        // No-op
-    }
-
-    fun trackRefreshDone() {
-        // No-op
-    }
-
-    fun trackRefreshError(error: Exception) {
-        // No-op
-    }
-
-    fun trackSearchError(error: Exception) {
-        // No-op
-    }
+    // Tracking methods removed
     //endregion
 
     //region Action mode methods

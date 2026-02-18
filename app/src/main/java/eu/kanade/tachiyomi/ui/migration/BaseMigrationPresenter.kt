@@ -4,7 +4,7 @@ import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.preference.PreferenceValues
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.extension.ExtensionManager
+// import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 
 abstract class BaseMigrationPresenter<T : BaseMigrationInterface>(
     protected val sourceManager: SourceManager = Injekt.get(),
@@ -29,7 +28,7 @@ abstract class BaseMigrationPresenter<T : BaseMigrationInterface>(
 
     var mangaItems = hashMapOf<Long, List<MangaItem>>()
         protected set
-    protected val extensionManager: ExtensionManager by injectLazy()
+    // protected val extensionManager: ExtensionManager by injectLazy()
 
     fun refreshMigrations() {
         presenterScope.launch {

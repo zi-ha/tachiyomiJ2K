@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.ui.main
 
-import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -20,11 +19,7 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 import eu.kanade.tachiyomi.ui.setting.SettingsReaderController
-import eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController
-import eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.util.chapter.ChapterSort
-import eu.kanade.tachiyomi.util.system.extensionIntentForText
-import eu.kanade.tachiyomi.util.view.withFadeTransaction
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -99,7 +94,7 @@ class SearchActivity : MainActivity() {
         }
     }
 
-    private fun intentShouldGoBack() = intent.action in listOf(SHORTCUT_MANGA, SHORTCUT_READER_SETTINGS, SHORTCUT_BROWSE)
+    private fun intentShouldGoBack() = intent.action in listOf(SHORTCUT_MANGA, SHORTCUT_READER_SETTINGS)
 
     override fun syncActivityViewWithController(
         to: Controller?,
@@ -126,31 +121,12 @@ class SearchActivity : MainActivity() {
         }
         when (intent.action) {
             Intent.ACTION_SEARCH, Intent.ACTION_SEND, "com.google.android.gms.actions.SEARCH_ACTION" -> {
-                // If the intent match the "standard" Android search intent
-                // or the Google-specific search intent (triggered by saying or typing "search *query* on *Tachiyomi*" in Google Search/Google Assistant)
-
-                // Get the search query provided in extras, and if not null, perform a global search with it.
-                val query = intent.getStringExtra(SearchManager.QUERY) ?: intent.getStringExtra(Intent.EXTRA_TEXT)
-                if (!query.isNullOrEmpty()) {
-                    extensionIntentForText(query)?.let {
-                        startActivity(it)
-                        finish()
-                        return true
-                    }
-                    router.replaceTopController(GlobalSearchController(query).withFadeTransaction())
-                } else {
-                    finish()
-                }
+                // Global search removed
+                finish()
             }
             INTENT_SEARCH -> {
-                val query = intent.getStringExtra(INTENT_SEARCH_QUERY)
-                val filter = intent.getStringExtra(INTENT_SEARCH_FILTER)
-                if (!query.isNullOrEmpty()) {
-                    if (router.backstackSize > 1) {
-                        router.popToRoot()
-                    }
-                    router.replaceTopController(GlobalSearchController(query, filter).withFadeTransaction())
-                }
+                // Global search removed
+                finish()
             }
             SHORTCUT_MANGA, SHORTCUT_MANGA_BACK -> {
                 val extras = intent.extras ?: return false
@@ -177,16 +153,6 @@ class SearchActivity : MainActivity() {
                 router.replaceTopController(
                     RouterTransaction
                         .with(MangaDetailsController(extras))
-                        .pushChangeHandler(SimpleSwapChangeHandler())
-                        .popChangeHandler(FadeChangeHandler()),
-                )
-            }
-            SHORTCUT_SOURCE -> {
-                val extras = intent.extras ?: return false
-                SecureActivityDelegate.promptLockIfNeeded(this, true)
-                router.replaceTopController(
-                    RouterTransaction
-                        .with(BrowseSourceController(extras))
                         .pushChangeHandler(SimpleSwapChangeHandler())
                         .popChangeHandler(FadeChangeHandler()),
                 )
