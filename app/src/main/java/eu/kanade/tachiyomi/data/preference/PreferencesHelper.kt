@@ -8,7 +8,6 @@ import androidx.preference.PreferenceManager
 import com.fredporciuncula.flow.preferences.FlowSharedPreferences
 import com.fredporciuncula.flow.preferences.Preference
 import com.google.android.material.color.DynamicColors
-import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.ui.library.LibraryItem
@@ -396,7 +395,7 @@ class PreferencesHelper(
 
     fun showTitleFirstInRecents() = flowPrefs.getBoolean(Keys.showTitleFirstInRecents, false)
 
-    fun checkForBetas() = flowPrefs.getBoolean("check_for_betas", BuildConfig.BETA)
+    fun checkForBetas() = flowPrefs.getBoolean("check_for_betas", false)
 
     fun unreadBadgeType() = flowPrefs.getInt("unread_badge_type", 2)
 

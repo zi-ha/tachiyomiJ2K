@@ -109,7 +109,7 @@ class OverflowDialog(
                 color(context.getResourceColor(android.R.attr.textColorSecondary)) {
                     append(vName)
                 }
-                if (BuildConfig.BETA) {
+                if (false) {
                     append("".addBetaTag(context, false))
                 }
             }

@@ -8,7 +8,7 @@ import com.google.android.material.shape.CornerFamily
 import com.mikepenz.fastadapter.FastAdapter
 import com.mikepenz.fastadapter.items.AbstractItem
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import eu.kanade.tachiyomi.data.track.TrackSearch
 import eu.kanade.tachiyomi.databinding.TrackSearchItemBinding
 import eu.kanade.tachiyomi.util.system.dpToPx
 import java.util.Locale

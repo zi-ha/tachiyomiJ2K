@@ -1,9 +1,7 @@
 package eu.kanade.tachiyomi.data.image.coil
 
-import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
-import androidx.core.content.getSystemService
 import coil.Coil
 import coil.ImageLoader
 import coil.decode.GifDecoder
@@ -32,9 +30,9 @@ class CoilSetup(
                         add(MangaCoverKeyer())
                     }
                     diskCache(diskCacheInit)
-                    memoryCache { MemoryCache.Builder(context).maxSizePercent(0.40).build() }
+                    memoryCache { MemoryCache.Builder(context).maxSizePercent(0.50).build() }
                     crossfade(true)
-                    allowRgb565(context.getSystemService<ActivityManager>()!!.isLowRamDevice)
+                    allowRgb565(true)
                     allowHardware(true)
                 }.build()
         Coil.setImageLoader(imageLoader)

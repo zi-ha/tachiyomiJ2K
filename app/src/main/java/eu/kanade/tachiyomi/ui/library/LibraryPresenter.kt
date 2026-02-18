@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.data.database.models.LibraryManga
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
 import eu.kanade.tachiyomi.data.database.models.Track
-import eu.kanade.tachiyomi.data.preference.DelayedLibrarySuggestionsJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.minusAssign
 import eu.kanade.tachiyomi.data.preference.plusAssign
@@ -137,9 +136,7 @@ class LibraryPresenter(
             lastAllLibraryItems = null
         }
         getLibrary()
-        if (preferences.showLibrarySearchSuggestions().isNotSet()) {
-            DelayedLibrarySuggestionsJob.setupTask(context, true)
-        } else if (preferences.showLibrarySearchSuggestions().get() &&
+        if (preferences.showLibrarySearchSuggestions().get() &&
             Date().time >= preferences.lastLibrarySuggestion().get() + TimeUnit.HOURS.toMillis(2)
         ) {
             // Doing this instead of a job in case the app isn't used often

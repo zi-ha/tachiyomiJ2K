@@ -43,8 +43,6 @@ android {
         buildConfigField("String", "BETA_COUNT", "\"${getBetaCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
         buildConfigField("String", "BUILD_TIME", "\"${getBuildTime()}\"")
-        buildConfigField("Boolean", "INCLUDE_UPDATER", "false")
-        buildConfigField("boolean", "BETA", "false")
 
         ndk {
             abiFilters += supportedAbis
@@ -188,15 +186,13 @@ dependencies {
     val okhttpVersion = "5.0.0-alpha.14"
     implementation("com.squareup.okhttp3:okhttp:$okhttpVersion")
     implementation("com.squareup.okhttp3:logging-interceptor:$okhttpVersion")
-    implementation("com.squareup.okhttp3:okhttp-dnsoverhttps:$okhttpVersion")
-    implementation("com.squareup.okhttp3:okhttp-brotli:$okhttpVersion")
     implementation("com.squareup.okio:okio:3.11.0")
 
     // Chucker
-//    val chuckerVersion = "3.5.2"
-//    debugImplementation("com.github.ChuckerTeam.Chucker:library:$chuckerVersion")
-//    releaseImplementation("com.github.ChuckerTeam.Chucker:library-no-op:$chuckerVersion")
-//    add("betaImplementation", "com.github.ChuckerTeam.Chucker:library-no-op:$chuckerVersion")
+    //    val chuckerVersion = "3.5.2"
+    //    debugImplementation("com.github.ChuckerTeam.Chucker:library:$chuckerVersion")
+    //    releaseImplementation("com.github.ChuckerTeam.Chucker:library-no-op:$chuckerVersion")
+    //    add("betaImplementation", "com.github.ChuckerTeam.Chucker:library-no-op:$chuckerVersion")
 
     implementation(kotlin("reflect", version = AndroidVersions.kotlin))
 

@@ -15,7 +15,16 @@ class TrackManager(
         const val MANGA_UPDATES = 7
     }
 
-    val services = emptyList<TrackService>()
+    val services =
+        listOf(
+            MyAnimeList(context, MYANIMELIST),
+            AniList(context, ANILIST),
+            Kitsu(context, KITSU),
+            Shikimori(context, SHIKIMORI),
+            Bangumi(context, BANGUMI),
+            Komga(context, KOMGA),
+            MangaUpdates(context, MANGA_UPDATES),
+        )
 
     fun getService(id: Int): TrackService? = services.find { it.id == id }
 }

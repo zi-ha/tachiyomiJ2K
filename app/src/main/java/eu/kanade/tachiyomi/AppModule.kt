@@ -9,6 +9,8 @@ import eu.kanade.tachiyomi.data.library.CustomMangaManager
 import eu.kanade.tachiyomi.data.preference.AndroidPreferenceStore
 import eu.kanade.tachiyomi.data.preference.PreferenceStore
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.track.TrackManager
+import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.chapter.ChapterFilter
 import eu.kanade.tachiyomi.util.manga.MangaShortcutManager
@@ -30,6 +32,8 @@ class AppModule(
         }
 
         addSingletonFactory { PreferencesHelper(app) }
+
+        addSingletonFactory { NetworkHelper(app) }
 
         addSingletonFactory { TrackManager(app) }
 

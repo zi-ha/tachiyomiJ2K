@@ -1,10 +1,9 @@
 -dontobfuscate
 
--keep class eu.kanade.tachiyomi.source.** { public protected *; } # Avoid access modification
 -keep,allowoptimization class eu.kanade.** { public protected *; }
 -keep,allowoptimization class tachiyomi.** { public protected *; }
 
-# Keep common dependencies used in extensions
+# Keep common dependencies
 -keep class androidx.preference.** { public protected *; }
 -keep class kotlin.** { public protected *; }
 -keep,allowoptimization class kotlinx.coroutines.** { public protected *; }
@@ -12,19 +11,12 @@
 -keep class okhttp3.** { public protected *; }
 -keep,allowoptimization class okio.** { public protected *; }
 -keep,allowoptimization class rx.** { public protected *; }
--keep class org.jsoup.** { public protected *; }
 -keep,allowoptimization class com.google.gson.** { public protected *; }
--keep,allowoptimization class app.cash.quickjs.** { public protected *; }
 -keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
 -keep,allowoptimization class eu.davidea.flexibleadapter.** { public protected *; }
 -keep class io.requery.android.database.** { public protected *; }
 
-# From extensions-lib
--keep,allowoptimization class eu.kanade.tachiyomi.network.interceptor.RateLimitInterceptorKt { public protected *; }
--keep,allowoptimization class eu.kanade.tachiyomi.network.interceptor.SpecificHostRateLimitInterceptorKt { public protected *; }
 -keep,allowoptimization class eu.kanade.tachiyomi.network.NetworkHelper { public protected *; }
--keep,allowoptimization class eu.kanade.tachiyomi.network.OkHttpExtensionsKt { public protected *; }
--keep,allowoptimization class eu.kanade.tachiyomi.network.RequestsKt { public protected *; }
 -keep,allowoptimization class eu.kanade.tachiyomi.AppInfo { public protected *; }
 
 -keep class com.hippo.image.** { *; }
@@ -82,6 +74,3 @@
 }
 ##---------------End: proguard configuration for kotlinx.serialization  ----------
 
-# Firebase
--keep class com.google.firebase.installations.** { *; }
--keep interface com.google.firebase.installations.** { *; }

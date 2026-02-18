@@ -58,27 +58,27 @@
 - 前台服务类型：
   - 若无持续后台任务，删除 FOREGROUND_SERVICE_DATA_SYNC 与对应 service 声明。
 
-6) 设置页与偏好项
+6) 设置页与偏好项 [已完成]
 - 设置分组最小化：存储/本地目录、阅读器、外观、备份、隐私与安全。
 - 移除：扩展、网络缓存/代理、在线更新计划、下载（网络）设置；保留追番账户与授权、仅用于授权的 WebView 设置。
 - 默认行为：首次安装必须选择本地目录；可变更目录；提供“扫描策略/过滤/排序/元数据优先级”。
 
-7) 阅读器与媒体栈
+7) 阅读器与媒体栈 [已完成]
 - 保留阅读器及图像解码栈（Coil、SubsamplingScaleImageView 等），不依赖网络即可工作。[依赖参考](file:///d:/Desktop/tachiyomiJ2K/app/build.gradle.kts)
 - 预读取/缓存仅针对本地文件；移除 Http 拦截器/网络配置。
 - 优化大图与长条阅读（内存策略、磁盘缓存上限），保障本地海量章节体验。
 
-8) 追番与第三方集成保留
+8) 追番与第三方集成保留 [已完成]
 - 保留 data/track 模块（MAL/Anilist/Kitsu/Shikimori/Bangumi/Kavita/Komga 等），确保 OAuth/Token 刷新与 API 调用可用。[目录索引](file:///d:/Desktop/tachiyomiJ2K/app/src/main/java/eu/kanade/tachiyomi/data/track)
 - 保留 Manga 详情页中的跟踪 UI（如 TrackSearchItem）；保留后台自动同步（如 DelayedTrackingUpdateJob、UnattendedTrackService）。
 
-9) 在线源与扩展生态剥离
+9)9) 在线源与扩展生态剥离 [已完成]
 - 删除/禁用 source/online 与 extension：
   - 源：HttpSource、ParsedHttpSource、DelegatedHttpSource 及具体实现。[online 包](file:///d:/Desktop/tachiyomiJ2K/app/src/main/java/eu/kanade/tachiyomi/source/online)
   - 扩展：ExtensionManager、ExtensionInstaller、相关 UI 与广播接收器。[ExtensionManager.kt](file:///d:/Desktop/tachiyomiJ2K/app/src/main/java/eu/kanade/tachiyomi/extension/ExtensionManager.kt)
 - Manifest 清理：扩展安装 Activity、Receiver、Shizuku Provider、扩展深链等统一删除。[AndroidManifest.xml](file:///d:/Desktop/tachiyomiJ2K/app/src/main/AndroidManifest.xml)
 
-10) 构建系统与依赖精简
+10) 构建系统与依赖精简 [已完成]
 - 直接在主分支裁剪依赖：
   - 去除抓站与脚本相关依赖（jsoup、quickjs）、扩展生态相关库；保留 OkHttp/Okio 用于追番同步。
   - 如不需要上报与分析，移除 Google 服务插件与 Firebase。
@@ -87,7 +87,7 @@
 - 编译常量：
   - 移除或固定 INCLUDE_UPDATER，并删除更新模块引用。
 
-11) 数据与目录迁移
+11) 数据与目录迁移 [已完成]
 - 数据库/偏好：
   - 原库含在线源相关字段时，可保留表结构但 UI 隐藏；或提供数据库迁移脚本置空/删除无用字段，避免空指针与冗余查询。
 - 目录迁移：

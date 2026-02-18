@@ -53,7 +53,7 @@ class TrackHolder(
         binding.logoContainer.updateLayoutParams<ConstraintLayout.LayoutParams> {
             bottomToBottom = if (track != null) binding.divider.id else binding.trackDetails.id
         }
-        val serviceName = binding.trackLogo.context.getString(item.service.nameRes())
+        val serviceName = binding.trackLogo.context.getString(item.service.nameRes)
         binding.trackLogo.contentDescription = serviceName
         binding.trackGroup.isVisible = track != null
         binding.addTracking.isVisible = track == null
@@ -83,12 +83,12 @@ class TrackHolder(
             }
             val status = item.service.getStatus(track.status)
             with(binding.trackStatus) {
-                if (status.isEmpty()) {
+                if (status.isNullOrEmpty()) {
                     setText(R.string.unknown_status)
                 } else {
-                    text = item.service.getStatus(track.status)
+                    text = status
                 }
-                setTextColor(enabledTextColor(status.isNotEmpty()))
+                setTextColor(enabledTextColor(!status.isNullOrEmpty()))
             }
             val supportsScoring = item.service.getScoreList().isNotEmpty()
             if (supportsScoring) {
@@ -112,8 +112,8 @@ class TrackHolder(
             binding.scoreContainer.isVisible = supportsScoring
             binding.vertDivider2.isVisible = supportsScoring
 
-            binding.dateGroup.isVisible = item.service.supportsReadingDates
-            if (item.service.supportsReadingDates) {
+            binding.dateGroup.isVisible = item.service.supportsReadingDates()
+            if (item.service.supportsReadingDates()) {
                 with(binding.trackStartDate) {
                     text =
                         if (track.started_reading_date != 0L) {

@@ -42,7 +42,5 @@
         android:layout_gravity="center"
         android:visibility="gone"/>
 
-    <!-- Adding bottom sheet after main content -->
-    <include layout="@layout/download_bottom_sheet"
-        android:id="@+id/download_bottom_sheet"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

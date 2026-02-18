@@ -9,6 +9,17 @@ import eu.kanade.tachiyomi.data.database.tables.TrackTable
 interface TrackQueries : DbProvider {
     fun getTracks(manga: Manga) = getTracks(manga.id)
 
+    fun getTracks() =
+        db
+            .get()
+            .listOfObjects(Track::class.java)
+            .withQuery(
+                Query
+                    .builder()
+                    .table(TrackTable.TABLE)
+                    .build(),
+            ).prepare()
+
     fun getTracks(mangaId: Long?) =
         db
             .get()

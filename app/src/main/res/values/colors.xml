@@ -179,4 +179,13 @@
     <color name="rippleColorYinYang">#1F000000</color>
     <color name="secondaryVariantYinYang">#000000</color>
     <color name="onSecondaryYinYang">@color/md_white_1000</color>
+
+    <!-- Track Services -->
+    <color name="myanimelist">#2E51A2</color>
+    <color name="anilist">#3DB4F2</color>
+    <color name="kitsu">#332532</color>
+    <color name="shikimori">#505050</color>
+    <color name="bangumi">#F09199</color>
+    <color name="komga">#0055D4</color>
+    <color name="manga_updates">#89A6C8</color>
 </resources>

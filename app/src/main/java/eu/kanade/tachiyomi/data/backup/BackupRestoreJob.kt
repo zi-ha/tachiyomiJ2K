@@ -1,9 +1,7 @@
 package eu.kanade.tachiyomi.data.backup
 
 import android.content.Context
-import android.content.pm.ServiceInfo
 import android.net.Uri
-import android.os.Build
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo

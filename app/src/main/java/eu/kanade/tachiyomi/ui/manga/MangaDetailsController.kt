@@ -53,7 +53,6 @@ import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.image.coil.getBestColor
-import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.databinding.MangaDetailsControllerBinding
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
@@ -133,7 +132,7 @@ class MangaDetailsController :
         Bundle().apply {
             putLong(MANGA_EXTRA, manga?.id ?: 0)
             putBoolean(FROM_CATALOGUE_EXTRA, fromCatalogue)
-            putParcelable(SMART_SEARCH_CONFIG_EXTRA, smartSearchConfig)
+            // putParcelable(SMART_SEARCH_CONFIG_EXTRA, smartSearchConfig)
             putBoolean(UPDATE_EXTRA, update)
         },
     ) {
@@ -153,11 +152,11 @@ class MangaDetailsController :
         val notificationId = bundle.getInt("notificationId", -1)
         val context = applicationContext ?: return
         if (notificationId > -1) {
-            NotificationReceiver.dismissNotification(
-                context,
-                notificationId,
-                bundle.getInt("groupId", 0),
-            )
+            // NotificationReceiver.dismissNotification(
+            //     context,
+            //     notificationId,
+            //     bundle.getInt("groupId", 0),
+            // )
         }
     }
 
