@@ -192,7 +192,7 @@
     <string name="local">本地</string>
     <string name="search_filters">搜索筛选器</string>
     <string name="no_more_results">没有更多结果</string>
-    <string name="local_source">本地图源</string>
+    <string name="local_source">本地</string>
     <string name="other">其他</string>
     <string name="global_search">全局搜索…</string>
     <string name="latest">最近更新</string>
@@ -277,7 +277,7 @@
     <string name="lock_with_biometrics">应用锁</string>
     <string name="lock_when_idle">切后台时锁定</string>
     <string name="no_results_found">没有结果</string>
-    <string name="local_source_help_guide">本地图源指南</string>
+    <string name="local_source_help_guide">本地指南</string>
     <string name="check_site_in_web">在WebView中检查网站</string>
     <string name="obsolete">失效</string>
     <string name="obsolete_extension_message">此插件不再可用。</string>

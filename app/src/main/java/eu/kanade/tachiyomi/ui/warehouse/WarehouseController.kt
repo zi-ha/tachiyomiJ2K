@@ -289,7 +289,13 @@ class WarehouseController(
                                 it.nameWithoutExtension == "cover" &&
                                 ImageUtil.isImage(it.name) { FileInputStream(it) }
                         }
-                if (cover != null) return cover
+                if (cover != null) {
+                    return try {
+                        LocalSource.updateCover(preferences.context, manga, cover.inputStream())
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
                 val chapters = localSource.getChapterList(manga)
                 val chapter = chapters.lastOrNull() ?: return null
                 return try {
@@ -333,18 +339,27 @@ class WarehouseController(
                     null
                 }
             } else {
-                return children
-                    .asSequence()
-                    .filter { it.isFile && it.nameWithoutExtension != "_cover_" }
-                    .filter { ImageUtil.isImage(it.name) { FileInputStream(it) } }
-                    .sortedWith { f1, f2 -> f1.name.compareToCaseInsensitiveNaturalOrder(f2.name) }
-                    .firstOrNull()
+                val first =
+                    children
+                        .asSequence()
+                        .filter { it.isFile && it.nameWithoutExtension != "_cover_" }
+                        .filter { ImageUtil.isImage(it.name) { FileInputStream(it) } }
+                        .sortedWith { f1, f2 -> f1.name.compareToCaseInsensitiveNaturalOrder(f2.name) }
+                        .firstOrNull()
+                if (first != null) {
+                    return try {
+                        LocalSource.updateCover(preferences.context, manga, first.inputStream())
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+                return null
             }
         }
         if (entry.isFile && entry.extension.lowercase() in setOf("zip", "cbz", "rar", "cbr")) {
             val chapter =
                 SChapter.create().apply {
-                    url = entry.name
+                    url = entry.absolutePath
                     name = entry.nameWithoutExtension
                     date_upload = entry.lastModified()
                     chapter_number = 1f

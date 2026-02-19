@@ -30,7 +30,9 @@ import eu.kanade.tachiyomi.util.system.ImageUtil
 import eu.kanade.tachiyomi.util.system.executeOnIO
 import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.widget.TriStateCheckBox
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -52,6 +54,10 @@ class MangaDetailsPresenter(
     val db: DatabaseHelper = Injekt.get(),
     chapterFilter: ChapterFilter = Injekt.get(),
 ) : BaseCoroutinePresenter<MangaDetailsController>() {
+    init {
+        presenterScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    }
+
     private val customMangaManager: CustomMangaManager by injectLazy()
     private val mangaShortcutManager: MangaShortcutManager by injectLazy()
     val sourceManager: SourceManager by injectLazy()
@@ -176,19 +182,38 @@ class MangaDetailsPresenter(
     }
 
     fun refreshMangaFromDb(): Manga {
-        val dbManga = db.getManga(manga.id!!).executeAsBlocking()
-        manga.copyFrom(dbManga!!)
+        val id = manga.id ?: return manga
+        val dbManga = db.getManga(id).executeAsBlocking() ?: return manga
+        manga.copyFrom(dbManga)
         return dbManga
     }
 
     fun refreshAll() {
         if (!manga.isLocal()) return
         presenterScope.launch {
-            withContext(Dispatchers.IO) {
-                getChapters()
+            isLoading = true
+            withContext(Dispatchers.Main) {
+                view?.setRefresh(true)
             }
-            view?.updateChapters(chapters)
-            getHistory()
+            try {
+                withContext(Dispatchers.IO) {
+                    refreshMangaFromDb()
+                    getChapters()
+                }
+                withContext(Dispatchers.Main) {
+                    view?.updateHeader()
+                }
+                getHistory()
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    view?.showError(e.message ?: "")
+                }
+            } finally {
+                isLoading = false
+                withContext(Dispatchers.Main) {
+                    view?.setRefresh(false)
+                }
+            }
         }
     }
 

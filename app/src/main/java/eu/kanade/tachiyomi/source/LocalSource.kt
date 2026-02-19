@@ -38,8 +38,38 @@ class LocalSource(
 
         private const val COVER_NAME = "cover.jpg"
         private const val COVERS_DIR = ".covers"
+        private const val LOCAL_COVERS_DIR = "local_covers"
         private val LATEST_THRESHOLD = TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS)
         private val langMap = hashMapOf<String, String>()
+
+        private fun resolveUrlToFile(
+            context: Context,
+            url: String,
+        ): File? {
+            val direct = File(url)
+            if (direct.isAbsolute && direct.exists()) return direct
+            return getBaseDirectories(context)
+                .asSequence()
+                .map { File(it, url) }
+                .firstOrNull { it.exists() }
+        }
+
+        private fun resolveUrlToDirectory(
+            context: Context,
+            url: String,
+        ): File? {
+            val file = resolveUrlToFile(context, url) ?: return null
+            return if (file.isDirectory) file else file.parentFile
+        }
+
+        private fun getLocalCoverFile(
+            context: Context,
+            url: String,
+        ): File {
+            val dir = File(context.filesDir, LOCAL_COVERS_DIR)
+            dir.mkdirs()
+            return File(dir, "${url.hashCode()}_$COVER_NAME")
+        }
 
         fun getMangaLang(
             manga: SManga,
@@ -47,11 +77,10 @@ class LocalSource(
         ): String {
             return langMap.getOrPut(manga.url) {
                 val localDetails =
-                    getBaseDirectories(context)
-                        .asSequence()
-                        .mapNotNull { File(it, manga.url).listFiles()?.toList() }
-                        .flatten()
-                        .firstOrNull { it.extension.equals("json", ignoreCase = true) }
+                    resolveUrlToDirectory(context, manga.url)
+                        ?.listFiles()
+                        ?.toList()
+                        ?.firstOrNull { it.extension.equals("json", ignoreCase = true) }
 
                 return if (localDetails != null) {
                     val obj = Json.decodeFromStream<MangaJson>(localDetails.inputStream())
@@ -67,23 +96,7 @@ class LocalSource(
             manga: SManga,
             input: InputStream,
         ): File? {
-            val dir = getBaseDirectories(context).firstOrNull()
-            if (dir == null) {
-                input.close()
-                return null
-            }
-            val mangaPath = File(dir, manga.url)
-            val coverDir =
-                if (mangaPath.isFile) {
-                    File(dir, "$COVERS_DIR/${manga.url.hashCode()}")
-                } else {
-                    mangaPath
-                }
-            var cover = getCoverFile(coverDir)
-            if (cover == null) {
-                cover = File(coverDir, COVER_NAME)
-            }
-            // It might not exist if using the external SD card
+            val cover = getLocalCoverFile(context, manga.url)
             cover.parentFile?.mkdirs()
             input.use {
                 cover.outputStream().use {
@@ -200,6 +213,12 @@ class LocalSource(
                             break
                         }
                     }
+                    if (thumbnail_url == null) {
+                        val cover = getLocalCoverFile(context, url)
+                        if (cover.exists()) {
+                            thumbnail_url = cover.absolutePath
+                        }
+                    }
 
                     val manga = this
                     runBlocking {
@@ -229,11 +248,10 @@ class LocalSource(
 
     override suspend fun getMangaDetails(manga: SManga): SManga {
         val localDetails =
-            getBaseDirectories(context)
-                .asSequence()
-                .mapNotNull { File(it, manga.url).listFiles()?.toList() }
-                .flatten()
-                .firstOrNull { it.extension.equals("json", ignoreCase = true) }
+            resolveUrlToDirectory(context, manga.url)
+                ?.listFiles()
+                ?.toList()
+                ?.firstOrNull { it.extension.equals("json", ignoreCase = true) }
 
         return if (localDetails != null) {
             val obj = json.decodeFromStream<MangaJson>(localDetails.inputStream())
@@ -257,9 +275,7 @@ class LocalSource(
         lang: String?,
     ) {
         val directory =
-            getBaseDirectories(context).map { File(it, manga.url) }.find {
-                it.exists()
-            } ?: return
+            resolveUrlToDirectory(context, manga.url) ?: return
         lang?.let { langMap[manga.url] = it }
         val json = Json { prettyPrint = true }
         val existingFileName = directory.listFiles()?.find { it.extension == "json" }?.name
@@ -294,31 +310,45 @@ class LocalSource(
     }
 
     override suspend fun getChapterList(manga: SManga): List<SChapter> {
+        val urlIsAbsolute = File(manga.url).isAbsolute
         val baseDirs = getBaseDirectories(context)
         val mangaPath =
-            File(manga.url)
-                .takeIf { it.isAbsolute && it.exists() }
+            File(manga.url).takeIf { it.isAbsolute && it.exists() }
                 ?: baseDirs.asSequence().map { File(it, manga.url) }.firstOrNull { it.exists() }
-        if (mangaPath?.isFile == true) {
+                ?: return emptyList()
+
+        if (mangaPath.isFile) {
             if (!isSupportedFile(mangaPath.extension)) return emptyList()
             return listOf(
                 SChapter.create().apply {
-                    url = manga.url
+                    url = if (urlIsAbsolute) mangaPath.absolutePath else manga.url
                     name = manga.title
                     date_upload = mangaPath.lastModified()
                     chapter_number = 1f
                 },
             )
         }
+
+        val dir = mangaPath.takeIf { it.isDirectory } ?: return emptyList()
+        val entries =
+            dir
+                .listFiles()
+                ?.asSequence()
+                ?.filterNot { it.name.startsWith('.') }
+                ?.filter { it.isDirectory || isSupportedFile(it.extension) }
+                ?.toList()
+                ?: emptyList()
         val chapters =
-            baseDirs
+            entries
                 .asSequence()
-                .mapNotNull { File(it, manga.url).listFiles()?.toList() }
-                .flatten()
-                .filter { it.isDirectory || isSupportedFile(it.extension) }
                 .map { chapterFile ->
                     SChapter.create().apply {
-                        url = "${manga.url}/${chapterFile.name}"
+                        url =
+                            if (urlIsAbsolute) {
+                                chapterFile.absolutePath
+                            } else {
+                                "${manga.url}/${chapterFile.name}"
+                            }
                         name =
                             if (chapterFile.isDirectory) {
                                 chapterFile.name
@@ -326,9 +356,6 @@ class LocalSource(
                                 chapterFile.nameWithoutExtension
                             }
                         date_upload = chapterFile.lastModified()
-
-                        val format = getFormat(chapterFile)
-
                         ChapterRecognition.parseChapterNumber(this, manga)
                     }
                 }.sortedWith { c1, c2 ->
@@ -337,7 +364,7 @@ class LocalSource(
                 }.toList()
 
         if (chapters.isNotEmpty()) return chapters
-        val dir = mangaPath?.takeIf { it.isDirectory } ?: return emptyList()
+
         val hasImages =
             dir
                 .listFiles()
@@ -346,7 +373,7 @@ class LocalSource(
         if (!hasImages) return emptyList()
         return listOf(
             SChapter.create().apply {
-                url = manga.url
+                url = if (urlIsAbsolute) dir.absolutePath else manga.url
                 name = manga.title
                 date_upload = dir.lastModified()
                 chapter_number = 1f
