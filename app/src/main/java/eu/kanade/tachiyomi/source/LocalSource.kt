@@ -3,6 +3,8 @@ package eu.kanade.tachiyomi.source
 import android.content.Context
 import com.github.junrar.Archive
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.preference.models.LocalLocation
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.MangasPage
@@ -10,7 +12,6 @@ import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.chapter.ChapterRecognition
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
-import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.system.ImageUtil
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
@@ -18,6 +19,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import timber.log.Timber
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.FileInputStream
@@ -34,6 +37,7 @@ class LocalSource(
         const val HELP_URL = "https://tachiyomi.org/docs/guides/local-source/"
 
         private const val COVER_NAME = "cover.jpg"
+        private const val COVERS_DIR = ".covers"
         private val LATEST_THRESHOLD = TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS)
         private val langMap = hashMapOf<String, String>()
 
@@ -68,9 +72,16 @@ class LocalSource(
                 input.close()
                 return null
             }
-            var cover = getCoverFile(File("${dir.absolutePath}/${manga.url}"))
+            val mangaPath = File(dir, manga.url)
+            val coverDir =
+                if (mangaPath.isFile) {
+                    File(dir, "$COVERS_DIR/${manga.url.hashCode()}")
+                } else {
+                    mangaPath
+                }
+            var cover = getCoverFile(coverDir)
             if (cover == null) {
-                cover = File("${dir.absolutePath}/${manga.url}", COVER_NAME)
+                cover = File(coverDir, COVER_NAME)
             }
             // It might not exist if using the external SD card
             cover.parentFile?.mkdirs()
@@ -87,18 +98,37 @@ class LocalSource(
          * Returns valid cover file inside [parent] directory.
          */
         private fun getCoverFile(parent: File): File? =
-            parent.listFiles()?.find { it.nameWithoutExtension == "cover" }?.takeIf {
-                it.isFile && ImageUtil.isImage(it.name) { it.inputStream() }
-            }
+            parent
+                .listFiles()
+                ?.find { it.nameWithoutExtension == "_cover_" }
+                ?.takeIf { it.isFile && ImageUtil.isImage(it.name) { it.inputStream() } }
+                ?: parent
+                    .listFiles()
+                    ?.find { it.nameWithoutExtension == "cover" }
+                    ?.takeIf { it.isFile && ImageUtil.isImage(it.name) { it.inputStream() } }
 
         private fun getBaseDirectories(context: Context): List<File> {
-            val c = context.getString(R.string.app_name) + File.separator + "local"
-            val oldLibrary = "Tachiyomi" + File.separator + "local"
-            return DiskUtil
-                .getExternalStorages(context)
-                .map {
-                    listOf(File(it.absolutePath, c), File(it.absolutePath, oldLibrary))
-                }.flatten()
+            val pref = Injekt.get<PreferencesHelper>()
+
+            // Try to use new locations first
+            val locations =
+                try {
+                    Json.decodeFromString<List<LocalLocation>>(pref.localLocations().get())
+                } catch (e: Exception) {
+                    emptyList()
+                }
+
+            if (locations.isNotEmpty()) {
+                return locations
+                    .filter { it.enabled }
+                    .map { File(it.directory) }
+                    .filter { it.exists() && it.isDirectory }
+            }
+
+            // Fallback to old single directory if new list is empty
+            val customDir = pref.localWarehouseDirectory().get().trim()
+            if (customDir.isEmpty()) return emptyList()
+            return listOf(File(customDir))
         }
     }
 
@@ -127,7 +157,7 @@ class LocalSource(
                 .asSequence()
                 .mapNotNull { it.listFiles()?.toList() }
                 .flatten()
-                .filter { it.isDirectory }
+                .filter { it.isDirectory || isSupportedFile(it.extension) }
                 .filterNot { it.name.startsWith('.') }
                 .filter { if (time == 0L) it.name.contains(query, ignoreCase = true) else it.lastModified() >= time }
                 .distinctBy { it.name }
@@ -155,12 +185,16 @@ class LocalSource(
         val mangas =
             mangaDirs.map { mangaDir ->
                 SManga.create().apply {
-                    title = mangaDir.name
+                    title = if (mangaDir.isFile) mangaDir.nameWithoutExtension else mangaDir.name
                     url = mangaDir.name
 
                     // Try to find the cover
                     for (dir in baseDirs) {
-                        val cover = getCoverFile(File("${dir.absolutePath}/$url"))
+                        val cover =
+                            getCoverFile(
+                                File(dir, url).takeIf { it.isDirectory }
+                                    ?: File(dir, "$COVERS_DIR/${url.hashCode()}"),
+                            )
                         if (cover != null && cover.exists()) {
                             thumbnail_url = cover.absolutePath
                             break
@@ -260,8 +294,24 @@ class LocalSource(
     }
 
     override suspend fun getChapterList(manga: SManga): List<SChapter> {
+        val baseDirs = getBaseDirectories(context)
+        val mangaPath =
+            File(manga.url)
+                .takeIf { it.isAbsolute && it.exists() }
+                ?: baseDirs.asSequence().map { File(it, manga.url) }.firstOrNull { it.exists() }
+        if (mangaPath?.isFile == true) {
+            if (!isSupportedFile(mangaPath.extension)) return emptyList()
+            return listOf(
+                SChapter.create().apply {
+                    url = manga.url
+                    name = manga.title
+                    date_upload = mangaPath.lastModified()
+                    chapter_number = 1f
+                },
+            )
+        }
         val chapters =
-            getBaseDirectories(context)
+            baseDirs
                 .asSequence()
                 .mapNotNull { File(it, manga.url).listFiles()?.toList() }
                 .flatten()
@@ -286,7 +336,22 @@ class LocalSource(
                     if (c == 0) c2.name.compareToCaseInsensitiveNaturalOrder(c1.name) else c
                 }.toList()
 
-        return chapters
+        if (chapters.isNotEmpty()) return chapters
+        val dir = mangaPath?.takeIf { it.isDirectory } ?: return emptyList()
+        val hasImages =
+            dir
+                .listFiles()
+                ?.any { it.isFile && ImageUtil.isImage(it.name) { it.inputStream() } }
+                ?: false
+        if (!hasImages) return emptyList()
+        return listOf(
+            SChapter.create().apply {
+                url = manga.url
+                name = manga.title
+                date_upload = dir.lastModified()
+                chapter_number = 1f
+            },
+        )
     }
 
     override suspend fun getPageList(chapter: SChapter) = throw Exception("Unused")
@@ -296,6 +361,9 @@ class LocalSource(
     fun getFormat(chapter: SChapter): Format {
         val baseDirs = getBaseDirectories(context)
 
+        File(chapter.url).takeIf { it.isAbsolute && it.exists() }?.let { chapFile ->
+            return getFormat(chapFile)
+        }
         for (dir in baseDirs) {
             val chapFile = File(dir, chapter.url)
             if (!chapFile.exists()) continue
@@ -326,7 +394,11 @@ class LocalSource(
                         format.file
                             .listFiles()
                             ?.sortedWith { f1, f2 -> f1.name.compareToCaseInsensitiveNaturalOrder(f2.name) }
-                            ?.find { !it.isDirectory && ImageUtil.isImage(it.name) { FileInputStream(it) } }
+                            ?.find {
+                                !it.isDirectory &&
+                                    it.nameWithoutExtension != "_cover_" &&
+                                    ImageUtil.isImage(it.name) { FileInputStream(it) }
+                            }
 
                     entry?.let { updateCover(context, manga, it.inputStream()) }
                 }

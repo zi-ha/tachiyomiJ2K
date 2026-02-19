@@ -98,7 +98,7 @@ android {
         }
         create("dev") {
             resourceConfigurations.clear()
-            resourceConfigurations.add("en")
+            resourceConfigurations.add("zh-rCN")
         }
     }
 

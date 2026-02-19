@@ -184,7 +184,11 @@ class MangaDetailsPresenter(
     fun refreshAll() {
         if (!manga.isLocal()) return
         presenterScope.launch {
-            // Local refresh logic if needed
+            withContext(Dispatchers.IO) {
+                getChapters()
+            }
+            view?.updateChapters(chapters)
+            getHistory()
         }
     }
 

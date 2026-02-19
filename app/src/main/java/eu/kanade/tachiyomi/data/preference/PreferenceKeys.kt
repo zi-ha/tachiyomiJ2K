@@ -110,6 +110,8 @@ object PreferenceKeys {
 
     const val downloadsDirectory = "download_directory"
 
+    const val localWarehouseDirectory = "local_warehouse_directory"
+
     const val downloadOnlyOverWifi = "pref_download_only_over_wifi_key"
 
     const val showLibrarySearchSuggestions = "show_library_search_suggestions"
@@ -238,4 +240,6 @@ object PreferenceKeys {
     const val HIDE_CHAPTER_TITLES = "hide_chapter_titles"
 
     const val CHAPTERS_DESC_AS_DEFAULT = "chapters_desc_as_default"
+
+    const val localLocations = "local_locations"
 }

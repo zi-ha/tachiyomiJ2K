@@ -54,7 +54,7 @@ class ExpandedAppBarLayout
         var mainActivity: MainActivity? = null
         private var isExtraSmall = false
         val useLargeToolbar: Boolean
-            get() = preferences.useLargeToolbar().get() && !isExtraSmall
+            get() = preferences.useLargeToolbar().get() && !isExtraSmall && context.isTablet()
 
         var compactSearchMode = false
 

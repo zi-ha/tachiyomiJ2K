@@ -7,6 +7,14 @@
     <string name="settings">设置</string>
     <string name="download_queue">下载列表</string>
     <string name="library">书架</string>
+    <string name="bookshelf">书库</string>
+    <string name="bookshelf_directory">书库目录</string>
+    <string name="choose_folder">选择文件夹</string>
+    <string name="scan_bookshelf">扫描</string>
+    <string name="bookshelf_not_selected">未选择文件夹</string>
+    <string name="bookshelf_scan_result">新增 %1$d，本地更新 %2$d</string>
+    <string name="select_this_folder">选择此文件夹</string>
+    <string name="parent_folder">上级目录</string>
     <string name="recent_updates">书架更新</string>
     <string name="selected_">已选择：%1$d</string>
     <string name="extensions">插件</string>
@@ -1060,4 +1068,29 @@
     <string name="invalid_repo_name">仓库网址无效</string>
     <string name="delete_repo_confirmation">确定要删除仓库“%s”吗？</string>
     <string name="error_repo_exists">此仓库网址已存在！</string>
+    <string name="app_name" translatable="false">TachiyomiJ2K</string>
+    <string name="app_short_name" translatable="false">TachiJ2K</string>
+    <string name="ext_installer_shizuku" translatable="false">Shizuku</string>
+    <string name="ext_installer_private" translatable="false">Private</string>
+    <string name="extension_must_reinstall">请先卸载，然后重新安装以更新。</string>
+    <string name="anilist" translatable="false">AniList</string>
+    <string name="myanimelist" translatable="false">MyAnimeList</string>
+    <string name="kitsu" translatable="false">Kitsu</string>
+    <string name="bangumi" translatable="false">Bangumi</string>
+    <string name="shikimori" translatable="false">Shikimori</string>
+    <string name="manga_updates" translatable="false">MangaUpdates</string>
+    <string name="komga" translatable="false">Komga</string>
+    <string name="kavita" translatable="false">Kavita</string>
+    <string name="suwayomi" translatable="false">Suwayomi</string>
+    <string name="cloudflare" translatable="false">Cloudflare</string>
+    <string name="google" translatable="false">Google</string>
+    <string name="ad_guard" translatable="false">AdGuard</string>
+    <string name="quad9" translatable="false">Quad9</string>
+    <string name="aliDNS" translatable="false">AliDNS</string>
+    <string name="dnsPod" translatable="false">DNSPod</string>
+    <string name="dns_360" translatable="false">360</string>
+    <string name="quad_101" translatable="false">Quad 101</string>
+    <string name="action_add">添加</string>
+    <string name="action_refresh">刷新</string>
+    <string name="action_delete">删除</string>
 </resources>

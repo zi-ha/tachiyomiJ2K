@@ -1640,6 +1640,7 @@ open class LibraryController(
     }
 
     private fun openManga(manga: Manga) {
+        if (manga.isBlank()) return
         router.pushController(MangaDetailsController(manga).withFadeTransaction())
     }
 

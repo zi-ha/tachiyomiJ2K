@@ -10,6 +10,7 @@ import com.fredporciuncula.flow.preferences.Preference
 import com.google.android.material.color.DynamicColors
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.preference.models.LocalLocation
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import eu.kanade.tachiyomi.ui.library.filter.FilterBottomSheet
 import eu.kanade.tachiyomi.ui.reader.settings.OrientationType
@@ -25,6 +26,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -242,6 +245,21 @@ class PreferencesHelper(
     fun anilistScoreType() = flowPrefs.getString("anilist_score_type", "POINT_10")
 
     fun backupsDirectory() = flowPrefs.getString(Keys.backupDirectory, defaultBackupDir.toString())
+
+    fun localWarehouseDirectory() = flowPrefs.getString(Keys.localWarehouseDirectory, "")
+
+    fun localLocations() = flowPrefs.getString(Keys.localLocations, "[]")
+
+    fun getLocalLocations(): List<LocalLocation> =
+        try {
+            Json.decodeFromString(localLocations().get())
+        } catch (e: Exception) {
+            emptyList()
+        }
+
+    fun setLocalLocations(locations: List<LocalLocation>) {
+        localLocations().set(Json.encodeToString(locations))
+    }
 
     fun dateFormat(format: String = flowPrefs.getString(Keys.dateFormat, "").get()): DateFormat =
         when (format) {

@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -64,6 +65,12 @@ open class App :
         }
 
         Injekt.importModule(AppModule(this))
+
+        val forcedLangTag = "zh-CN"
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(forcedLangTag))
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            preferences.appLanguage().set(forcedLangTag)
+        }
 
         CoilSetup(this)
         setupNotificationChannels()

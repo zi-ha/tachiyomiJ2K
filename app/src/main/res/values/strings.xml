@@ -7,6 +7,10 @@
     <string name="external_storage_permission_notice">TachiyomiJ2K requires access to all files in Android 11 to download chapters, create automatic backups, and read local series. \n\nOn the next screen, enable \"Allow access to manage all files.\"</string>
     <string name="external_storage_download_notice">TachiyomiJ2K requires access to all files to download chapters. Tap here, then enable \"Allow access to manage all files.\"</string>
 
+    <string name="action_add">Add</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_delete">Delete</string>
+
     <!--Models-->
 
     <!-- Manga Type -->
@@ -130,6 +134,14 @@
 
     <!-- Library -->
     <string name="library">Library</string>
+    <string name="bookshelf">Bookshelf</string>
+    <string name="bookshelf_directory">Bookshelf directory</string>
+    <string name="choose_folder">Choose folder</string>
+    <string name="scan_bookshelf">Scan</string>
+    <string name="bookshelf_not_selected">No folder selected</string>
+    <string name="bookshelf_scan_result">Added %1$d, updated %2$d</string>
+    <string name="select_this_folder">Select this folder</string>
+    <string name="parent_folder">Parent folder</string>
     <string name="your_library">Your library</string>
     <string name="updating_library">Updating library</string>
     <string name="selected_">Selected: %1$d</string>

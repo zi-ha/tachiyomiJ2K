@@ -7,6 +7,10 @@
             android:icon="@drawable/ic_library_selector_24dp"
             android:title="@string/library" />
         <item
+            android:id="@+id/nav_bookshelf"
+            android:icon="@drawable/ic_bookshelf_selector_24dp"
+            android:title="@string/bookshelf" />
+        <item
             android:id="@+id/nav_recents"
             android:icon="@drawable/ic_recents_selector_24dp"
             android:title="@string/recents" />

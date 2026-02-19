@@ -91,7 +91,7 @@
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/big_title"
                 android:paddingStart="16dp"
-                android:paddingEnd="12dp"
+                android:paddingEnd="16dp"
                 style="?textAppearanceHeadlineLarge"
                 android:layout_width="0dp"
                 android:maxLines="2"

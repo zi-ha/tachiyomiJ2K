@@ -89,6 +89,7 @@ import eu.kanade.tachiyomi.ui.recents.RecentsViewType
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 import eu.kanade.tachiyomi.ui.setting.SettingsMainController
+import eu.kanade.tachiyomi.ui.warehouse.WarehouseController
 import eu.kanade.tachiyomi.util.manga.MangaCoverMetadata
 import eu.kanade.tachiyomi.util.manga.MangaShortcutManager
 import eu.kanade.tachiyomi.util.system.contextCompatDrawable
@@ -443,6 +444,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             nav.selectedItemId =
                 when (router.backstack.firstOrNull()?.controller) {
                     is RecentsController -> R.id.nav_recents
+                    is WarehouseController -> R.id.nav_bookshelf
                     else -> R.id.nav_library
                 }
         }
@@ -498,6 +500,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 setRoot(
                     when (id) {
                         R.id.nav_library -> LibraryController()
+                        R.id.nav_bookshelf -> WarehouseController()
                         else -> RecentsController()
                     },
                     id,
